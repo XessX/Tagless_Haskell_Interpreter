@@ -4,7 +4,7 @@ A tagless haskell interpreter built for 761-Generative Programming course(Jacque
 
 An interpreters for a language with the following features:
 
-booleans, if-then-else
+Booleans, if-then-else
 pairs and projections
 lambda, application
 integers, addition, multiplication, (unary) minus
@@ -30,7 +30,7 @@ https://www.youtube.com/watch?v=_XoI65Rxmss&t=5s \
 https://www.schoolofhaskell.com/user/mutjida/typed-tagless-final-linear-lambda-calculus/2-hoas-typed-tagless-final-interpreter \
 https://github.com/blargoner/lambda \
 
-as a usual programming language (i.e. that 'runs')
+As a usual programming language (i.e. that 'runs')
 that computes the length of the program
 that computes (using `Data.Text`) a valid Haskell representation of the program
 that computes (using `Data.Text`) a "pretty-printed" version of the program
