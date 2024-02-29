@@ -17,7 +17,7 @@ Following paper\
 Typed Tagless Final Interpreters (https://okmij.org/ftp/tagless-final/course/lecture.pdf) \
 Finally Tagless, Partially Evaluated (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) \
 Tutorial on Online Partial Evaluation (https://www.cs.utexas.edu/~wcook/tutorial/PEnotes.pdf) \
-Multi-stage programming with functors and monads: eliminating abstraction overhead from generic code (https://www.cas.mcmaster.ca/~carette/publications/scp_metamonads.pdf) \
+Multi-stage programming with functors and monads: eliminating abstraction overhead from generic code (https://www.cas.mcmaster.ca/~carette/publications/scp_metamonads.pdf) 
 
 Following implementations and projects\
 https://okmij.org/ftp/tagless-final/index.html \
