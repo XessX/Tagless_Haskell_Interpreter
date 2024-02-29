@@ -16,7 +16,7 @@ The interpreters to build (in finally tagless style) using Haskell:
 Following paper\
 Typed Tagless Final Interpreters (https://okmij.org/ftp/tagless-final/course/lecture.pdf) \
 Finally Tagless, Partially Evaluated (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) \
-Tutorial on Online Partial Evaluation (https://www.cs.utexas.edu/~wcook/tutorial/PEnotes.pdf)\
+Tutorial on Online Partial Evaluation (https://www.cs.utexas.edu/~wcook/tutorial/PEnotes.pdf)
 
 as a usual programming language (i.e. that 'runs')
 that computes the length of the program
