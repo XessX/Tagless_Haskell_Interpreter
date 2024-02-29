@@ -36,5 +36,7 @@ that computes (using `Data.Text`) a valid Haskell representation of the program
 that computes (using `Data.Text`) a "pretty-printed" version of the program
 The code should come with a (commented!) test suite of programs that test all the features and all the interpreters. A standard unit test framework (such as HUnit or HTF) for that purpose is used.
 
-The code is organized using either Stack or Cabal for doing builds. A README.md file is provided for documenting how to build the project and where to find the right pieces.
+The code will be organized using either Stack or Cabal for doing builds. A README.md file is provided for documenting how to build the project and where to find the right pieces.
+
+The interpreter will have Partial Evaluation added to it as so called "Fancy Interpreter".
 
