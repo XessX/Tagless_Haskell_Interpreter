@@ -11,7 +11,7 @@ integers, addition, multiplication, (unary) minus\
 ordering (i.e. less than) on integers\
 equality on integers\
 a combinator for computing fixed points 'fix'\
-The interpreters to build (in finally tagless style) using Haskell:\
+The interpreters to build (in finally tagless style) using Haskell:
 
 Following paper\
 Typed Tagless Final Interpreters (https://okmij.org/ftp/tagless-final/course/lecture.pdf) \
