@@ -1,0 +1,160 @@
+-- Two data types are defined to support finally tagless style
+import Data.Function
+data MDouble = M Double
+    | VZ
+
+data NInt = N Int
+    | VZ2
+
+-- Expression is defined to include integer operations (neg, add, sub, mult), if then else, lambda expression and apllication and pair and projection:
+      
+
+-- To evaluate each expression the following class is defioned:
+class ExpSYM repr where
+    int :: Int -> repr Int                -- int literal
+    bool :: Bool -> repr Bool             -- bool literal
+    float :: Float -> repr Float
+    add :: repr Int -> repr Int -> repr Int
+    neg :: repr Int -> repr Int
+    sub :: repr Int -> repr Int -> repr Int
+    mul :: repr Int -> repr Int -> repr Int
+    leq :: repr Int -> repr Int -> repr Bool
+    lt  :: repr Int -> repr Int -> repr Bool
+    neq :: repr Int -> repr Int -> repr Bool
+    eq  :: repr Int -> repr Int -> repr Bool
+    gt  :: repr Int -> repr Int -> repr Bool
+    gte :: repr Int -> repr Int -> repr Bool
+    if_ :: repr Bool -> repr a -> repr a -> repr a
+    lam :: (repr a -> repr b) -> repr (a->b)
+    app :: repr (a->b) -> repr a -> repr b
+    fix :: (repr a -> repr a) -> repr a
+--  getInt :: repr -> Int
+--  getDouble :: repr -> Double
+--  pair :: repr -> repr -> (repr , repr)
+--  fst_ :: (repr , repr) -> repr
+--  snd_ :: (repr , repr) -> repr
+
+newtype R a = R a deriving Show
+unR (R x) = x
+
+
+-- An instance of the ExpSYM class for integer numbers:
+instance ExpSYM R where
+    int x = R x
+    bool b = R b
+    float f = R f 
+    neg (R f) = R (-f)
+    add e1 e2 = R((unR e1) + (unR e2))
+    sub e1 e2 = R((unR e1) - (unR e2))
+    mul e1 e2 = R((unR e1) * (unR e2))
+    leq e1 e2 = R((unR e1) <= (unR e2))
+    lt e1 e2 = R((unR e1) < (unR e2))
+    neq e1 e2 = R((unR e1) /= (unR e2))
+    eq e1 e2 = R((unR e1) == (unR e2))    
+    gte e1 e2 = R((unR e1) >= (unR e2))
+    gt e1 e2 = R((unR e1) > (unR e2))    
+    lam f = R (unR.f.R)
+    app e1 e2 = R((unR e1) (unR e2))
+    fix f = R(fx(unR.f.R)) where fx f = f (fx f)
+    if_ be ex1 ex2 = R(if (unR be) then unR ex1 else unR ex2)
+
+test1 () = add (int 1) (neg(int 2))
+    
+compR = unR
+mkrtest f = compR (f ())
+
+rtest1 = mkrtest test1
+
+
+newtype L a = L Int deriving Show
+unL (L x) = x
+
+instance ExpSYM L where
+    int _  = L 1
+    bool _ = L 1
+    float _ = L 1
+    
+    lam f = L( unL (f (L 0)) + 1 )
+    app e1 e2 = L( unL e1 + unL e2 + 1 )
+    fix f = L( unL (f (L 0)) + 1 )
+
+    add e1 e2 = L( unL e1 + unL e2 + 1 )
+    sub e1 e2 = L( unL e1 + unL e2 + 1 )
+    mul e1 e2 = L( unL e1 + unL e2 + 1 )
+    neg e1 = L( unL e1 + 1 )
+            
+    leq e1 e2 = L( unL e1 + unL e2 + 1 )
+    lt e1 e2 = L( unL e1 + unL e2 + 1 )
+    neq e1 e2 = L( unL e1 + unL e2 + 1 )
+    eq e1 e2 = L( unL e1 + unL e2 + 1 )
+    gt e1 e2 = L( unL e1 + unL e2 + 1 )
+    gte e1 e2 = L( unL e1 + unL e2 + 1 )    
+                    
+    if_ be et ee = L( unL be +  unL et + unL ee  + 1 )
+
+compL = unL
+
+ltest1 = compL . test1 $ ()
+
+
+
+newtype S a = S String deriving Show
+unS (S x) = x
+
+instance ExpSYM S where
+    int x  = "Int"++show x
+    bool x = S $ const $ show x
+    float x = S $ const $ show x
+    
+--    lam f = S( unL (f (L 0)) + 1 )
+--    app e1 e2 = L( unL e1 + unL e2 + 1 )
+--    fix f = L( unL (f (L 0)) + 1 )
+
+--    add e1 e2 = L( unL e1 + unL e2 + 1 )
+--    sub e1 e2 = L( unL e1 + unL e2 + 1 )
+--    mul e1 e2 = L( unL e1 + unL e2 + 1 )
+--    neg e1 = L( unL e1 + 1 )
+            
+--    leq e1 e2 = L( unL e1 + unL e2 + 1 )
+--   lt e1 e2 = L( unL e1 + unL e2 + 1 )
+--    neq e1 e2 = L( unL e1 + unL e2 + 1 )
+--    eq e1 e2 = L( unL e1 + unL e2 + 1 )
+--    gt e1 e2 = L( unL e1 + unL e2 + 1 )
+--    gte e1 e2 = L( unL e1 + unL e2 + 1 )    
+                    
+--    if_ be et ee = L( unL be +  unL et + unL ee  + 1 )
+
+compS = unS
+
+stest1 = compS . test1 $ ()
+
+    
+main = do  
+    -- testcase#1 evaluation:
+    -- let k1 = add (lit (N 8)) (neg ( add (lit (N 1)) (lit (N 2))))
+    -- let k2 = neg (k1)
+    -- let k3 = lam add (N 2)
+    -- let k4 = app k3 (k2)
+    -- let k5 = if_ (eq k1 k2) (add (N 2) (N 5)) (mul(neg(N 4)) (N 6))
+    -- let k6 = pair k4 k5
+    -- print ("Result of evaluation: ")
+    -- print(getInt (fst_ k6))
+    
+    -- testcase#2 prettyprint:    
+    --let p1 = Add(Lit 8) (Neg (Add (Lit 1) (Lit 2)))
+    --let p2 = Neg p1
+    --let p3 = Lam Addf (Lit 2)
+    --let p4 = App p3 (p2)
+    --let p5 = If_ (Eq p1 p2) (Add (Lit 2) (Lit 5)) (Mul (Neg (Lit 4)) (Lit 6))
+    --let p6 = Pair p4 p5
+    --let p7 = Fst p6 (Lit 2)
+    --let res = view p7
+    --print ("Pretty print: ")
+    --print(res)
+    
+    -- testcase#3 length of the script:
+    --let res2 = len p7
+    --print("length of the script: ");
+    -- print(ltest1)
+    -- fix :: (a -> a) -> a
+    -- fix f = let {x = f x} in x
