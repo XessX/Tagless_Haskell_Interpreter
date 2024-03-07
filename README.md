@@ -1,5 +1,5 @@
 # Tagless_Haskell_Interpreter
-A tagless haskell interpreter built for 761-Generative Programming course(Jacques Carette) by me @XessX
+A typed tagless haskell interpreter built for 761-Generative Programming course(Prof. Jacques Carette) by me @XessX
 
 
 An interpreters for a language with the following features:
