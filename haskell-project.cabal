@@ -59,7 +59,11 @@ library
     import:           warnings
 
     -- Modules exported by the library.
+<<<<<<< HEAD
     exposed-modules:   Hx, L, Runs, PPrint, TypesClasses, TestSuite
+=======
+    exposed-modules:  HxR, L, R, PPrint, TypesClasses, TestSuite
+>>>>>>> origin/repr-
 
     -- Modules included in this library but not exported.
     -- other-modules:
