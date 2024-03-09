@@ -1,0 +1,14 @@
+Test suite haskell-project-test: RUNNING...
+Cases: 5  Tried: 0  Errors: 0  Failures: 0Cases: 5  Tried: 1  Errors: 0  Failures: 0Cases: 5  Tried: 2  Errors: 0  Failures: 0Cases: 5  Tried: 3  Errors: 0  Failures: 0Cases: 5  Tried: 4  Errors: 0  Failures: 0                                          Cases: 5  Tried: 5  Errors: 0  Failures: 0
+Executing Program that Runs interpreter test:
+-1
+-29
+2
+32
+6
+Executing Haskell Representation test:
+(3 + (-5))
+Executing PPrint test:
+(2 + (-3))
+Test suite haskell-project-test: PASS
+Test suite logged to: /Users/jubair/haskell-project/dist-newstyle/build/aarch64-osx/ghc-9.4.8/haskell-project-0.1.0.0/t/haskell-project-test/test/haskell-project-0.1.0.0-haskell-project-test.log
