@@ -42,10 +42,18 @@ that computes (using `Data.Text`) a valid Haskell representation of the program\
 that computes (using `Data.Text`) a "pretty-printed" version of the program\
 The code should come with a (commented!) test suite of programs that test all the features and all the interpreters. A standard unit test framework (such as HUnit or HTF) for that purpose is used.\
 
-Datas/codes and understanding of the project | Followed Areas to build the Project
+Codes/Materials for understanding the project | Followed studies to build the Project
 ------------- | -------------
-Content Cell  | Content Cell
-Content Cell  |  \| 
+Data Types & Class Types  | (https://okmij.org/ftp/tagless-final/course/lecture.pdf)- [3.4 - Tagless Final embedding]
+Length of the Program  |  
+Program that Runs  | Content Cell
+Data.Text for Haskell & Pretty Print Representation |  
+TestSuite  | Content Cell
+HUnit TestCases  |  
+Cabal Build  | Content Cell
+pairs & Projections  |  
+Lamda  | 
+Fix Combinator  | 
 
 
 The interpreter will likely have Partial Evaluation added to it as so called "Fancy Interpreter".
