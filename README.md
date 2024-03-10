@@ -13,6 +13,12 @@ equality on integers\
 a combinator for computing fixed points 'fix'\
 The interpreters to build (in finally tagless style) using Haskell:
 
+As a usual programming language (i.e. that 'runs')\
+that computes the length of the program\
+that computes (using `Data.Text`) a valid Haskell representation of the program\
+that computes (using `Data.Text`) a "pretty-printed" version of the program\
+The code should come with a (commented!) test suite of programs that test all the features and all the interpreters. A standard unit test framework (such as HUnit or HTF) for that purpose is used.\
+
 Following paper\
 Typed Tagless Final Interpreters (https://okmij.org/ftp/tagless-final/course/lecture.pdf) \
 Finally Tagless, Partially Evaluated (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) \
@@ -36,7 +42,11 @@ that computes (using `Data.Text`) a valid Haskell representation of the program\
 that computes (using `Data.Text`) a "pretty-printed" version of the program\
 The code should come with a (commented!) test suite of programs that test all the features and all the interpreters. A standard unit test framework (such as HUnit or HTF) for that purpose is used.\
 
-The code will be organized using either Stack or Cabal for doing builds. A README.md file is provided for documenting how to build the project and where to find the right pieces.\
+Datas/codes and understanding of the project | Followed Areas to build the Project
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  |  \| 
+
 
 The interpreter will likely have Partial Evaluation added to it as so called "Fancy Interpreter".
 
