@@ -26,19 +26,19 @@ instance ExpSYM Hx where
      $ bOp (Tx.pack "-") x y
     mul (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack "*") x y
-    leq (Hx x) (Hx y) = Hx
+    leql (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack "<=") x y
-    lt (Hx x) (Hx y) = Hx
+    lth (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack "<") x y
-    neq (Hx x) (Hx y) = Hx
+    neql (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack "/=") x y
-    eq (Hx x) (Hx y) = Hx
+    eql (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack "==") x y
-    gt (Hx x) (Hx y) = Hx
+    gtr (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack ">") x y
-    gte (Hx x) (Hx y) = Hx
+    gtre (Hx x) (Hx y) = Hx
      $ bOp (Tx.pack ">=") x y
-    if_ (Hx b) (Hx x) (Hx y) = Hx
+    if_el (Hx b) (Hx x) (Hx y) = Hx
      $ Tx.concat [Tx.pack "if ", b, Tx.pack " then ", x, Tx.pack " else ", y]
     lam f = Hx
      $ Tx.concat [Tx.pack "\\x -> ", unHx (f (Hx $ Tx.pack "x"))]

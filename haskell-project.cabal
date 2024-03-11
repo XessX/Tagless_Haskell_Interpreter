@@ -59,7 +59,7 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:   Hx, Len, Runs, PPrint, TypesClasses, TestSuite
+    exposed-modules:   Hx, Len, Runs, Pp, TypesClasses, TestSuite
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -68,7 +68,7 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1, text, HUnit
+    build-depends:    base ^>=4.17.2.1, text, HUnit, prettyprinter
 
     -- Directories containing source files.
     hs-source-dirs:   src, app, test
@@ -84,7 +84,7 @@ executable haskell-project
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules:TestSuite
+    other-modules:TestSuite, Hx, Pp, Runs, TypesClasses, Len
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -93,7 +93,8 @@ executable haskell-project
     build-depends:
         base ^>=4.17.2.1,
         text,
-        HUnit
+        HUnit,
+        prettyprinter
 
     -- Directories containing source files.
     hs-source-dirs:   app, test, src
@@ -127,4 +128,5 @@ test-suite haskell-project-test
     build-depends:
         base ^>=4.17.2.1,
         text,
-        HUnit
+        HUnit,
+        prettyprinter

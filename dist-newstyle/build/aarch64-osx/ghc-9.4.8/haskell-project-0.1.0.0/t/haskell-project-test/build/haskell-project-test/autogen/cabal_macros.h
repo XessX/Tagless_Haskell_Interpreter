@@ -30,6 +30,16 @@
   (major1) == 4 && (major2) <  17 || \
   (major1) == 4 && (major2) == 17 && (minor) <= 2)
 #endif /* MIN_VERSION_base */
+/* package prettyprinter-1.7.1 */
+#ifndef VERSION_prettyprinter
+#define VERSION_prettyprinter "1.7.1"
+#endif /* VERSION_prettyprinter */
+#ifndef MIN_VERSION_prettyprinter
+#define MIN_VERSION_prettyprinter(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  7 || \
+  (major1) == 1 && (major2) == 7 && (minor) <= 1)
+#endif /* MIN_VERSION_prettyprinter */
 /* package text-2.0.2 */
 #ifndef VERSION_text
 #define VERSION_text "2.0.2"

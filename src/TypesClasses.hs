@@ -15,13 +15,13 @@ class ExpSYM repr where
     neg :: repr Int -> repr Int
     sub :: repr Int -> repr Int -> repr Int
     mul :: repr Int -> repr Int -> repr Int
-    leq :: repr Int -> repr Int -> repr Bool
-    lt :: repr Int -> repr Int -> repr Bool
-    neq :: repr Int -> repr Int -> repr Bool
-    eq :: repr Int -> repr Int -> repr Bool
-    gt :: repr Int -> repr Int -> repr Bool
-    gte :: repr Int -> repr Int -> repr Bool
-    if_ :: repr Bool -> repr a -> repr a -> repr a
+    leql :: repr Int -> repr Int -> repr Bool
+    lth :: repr Int -> repr Int -> repr Bool
+    neql :: repr Int -> repr Int -> repr Bool
+    eql :: repr Int -> repr Int -> repr Bool
+    gtr :: repr Int -> repr Int -> repr Bool
+    gtre :: repr Int -> repr Int -> repr Bool
+    if_el :: repr Bool -> repr a -> repr a -> repr a
     lam :: (repr a -> repr b) -> repr (a -> b)
     app :: repr (a -> b) -> repr a -> repr b
     fix :: (repr a -> repr a) -> repr a

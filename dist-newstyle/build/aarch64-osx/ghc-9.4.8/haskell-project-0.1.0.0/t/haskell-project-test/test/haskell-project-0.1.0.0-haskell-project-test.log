@@ -9,6 +9,6 @@ Executing Program that Runs interpreter test:
 Executing Haskell Representation test:
 (3 + (-5))
 Executing PPrint test:
-(2 + (-3))
+(5 * (4 - 5))
 Test suite haskell-project-test: PASS
-Test suite logged to: /Users/jubair/Tagless_Haskell_Interpreter/dist-newstyle/build/aarch64-osx/ghc-9.4.8/haskell-project-0.1.0.0/t/haskell-project-test/test/haskell-project-0.1.0.0-haskell-project-test.log
+Test suite logged to: /Users/jubair/haskell-project/dist-newstyle/build/aarch64-osx/ghc-9.4.8/haskell-project-0.1.0.0/t/haskell-project-test/test/haskell-project-0.1.0.0-haskell-project-test.log

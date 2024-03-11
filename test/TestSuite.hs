@@ -10,7 +10,7 @@ testPrograms = [test0, test1, test2, test3, test4]
   where
     test0 = add (int 2) (neg (int 3))
     test1 = sub (mul (add (int 3) (neg (int 7))) (int 6)) (int 5)
-    test2 = if_ (neq (int 3) (int 4)) (int 2) (int 8)
+    test2 = if_el (neql (int 3) (int 4)) (int 2) (int 8)
     test3 = app (app (lam (\y -> lam (\x -> mul x y))) (int 8)) (int 4)
     test4 = fst_ (pair (int 6) (int 3))
 
