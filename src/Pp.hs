@@ -36,7 +36,13 @@ instance ExpSYM Pp where
      $ parens (x <+> pretty ">=" <+> y)
     if_el (Pp b) (Pp x) (Pp y) = Pp
      $ pretty "if" <+> b <+> pretty "then" <+> x <+> pretty "else" <+> y
+    lam f = let x = Pp $ pretty "x"
+                body = unPp $ f x
+             in Pp $ parens (pretty "\\" <> pretty "x" <+> pretty "->" <+> body)
     app (Pp f) (Pp x) = Pp $ f <+> x
+    fix f = let x = Pp $ pretty "x"
+                body = unPp $ f x
+            in Pp $ parens (pretty "fix" <+> (pretty "\\" <> pretty "x" <+> pretty "->" <+> body))
     fst_ (Pp x) = Pp
      $ pretty "fst" <+> x
     snd_ (Pp y) = Pp

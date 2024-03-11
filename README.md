@@ -1,8 +1,10 @@
 # Tagless_Haskell_Interpreter
-A tagless haskell interpreter built for 761-Generative Programming course(Jacques Carette) by me @XessX
+A typed tagless haskell interpreter built for 761-Generative Programming course(Jacques Carette) by me @XessX
 
+To run > dist-style > build > x(file_name) > haskell_project > haskell project(executable file) .
+It will ask for permission to run and might give an error after running for the first time depending on your device but next time it'll run.
 
-An interpreters for a language with the following features:
+An interpreter with the following features:
 
 Booleans, if-then-else\
 pairs and projections\
@@ -58,7 +60,7 @@ Program that Runs  | (https://okmij.org/ftp/tagless-final/course/lecture.pdf) - 
 Data.Text for Haskell & Pretty Print Representation | (https://hackage.haskell.org/package/text-2.1.1/docs/Data-Text.html) - Data.Text(Text) , Data.Text.IO (Outputs Hx, Pretty print when type is Text) , T.Pack (String -> Text), T.concat (concatenates Text)<br />(https://okmij.org/ftp/tagless-final/course/lecture.pdf)-[page-28 Pretty-print & Transformer]<br />(https://tarmean.github.io/prettyprinter.html)<br />(https://stackoverflow.com/questions/58960669/using-annotations-and-pretty-printer)<br /> (https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#g:5)<br />(https://github.com/quchen/show-prettyprint/blob/master/src/Text/Show/Prettyprint.hs)<br /> [This/prettyprinter was quite hard to understand at first yet it will take more time to understand this more or less]
 TestSuite  | (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.html)
 HUnit TestCases  |  (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.html)<br />(https://courses.cs.washington.edu/courses/cse341/18sp/haskell/running.html)
-Cabal Build  | (https://www.haskell.org/ghcup/steps/)<br />When installing dependencies, don't forget to use 'cabal install text --lib', same goes for HUnit
+Cabal Build  | (https://www.haskell.org/ghcup/steps/)<br />When installing dependencies, don't forget to use 'cabal install text --lib', same goes for HUnit and PrettyPrinter
 Fix Combinator (Extra) | (https://okmij.org/ftp/Haskell/types.html#Prepose)
 Misc | (https://typeclasses.substack.com/p/whats-new-in-ghc-2021)<br />(https://www.schoolofhaskell.com/user/mutjida/typed-tagless-final-linear-lambda-calculus/2-hoas-typed-tagless-final-interpreter)<br />(https://maksbotan.github.io/posts/2019-09-04-abstract-definitional-interpreters.html)<br />   (https://www.reddit.com/r/haskell/comments/424txm/what_is_the_advantage_of_tagless_final_style_over)<br />(https://www.youtube.com/watch?v=_KioQRICpmo)<br />   (https://discuss.ocaml.org/t/explain-like-im-5-years-old-tagless-final-pattern/9394/13)
 
