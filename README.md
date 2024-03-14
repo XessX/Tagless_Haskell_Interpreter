@@ -63,7 +63,7 @@ Data.Text for Haskell & Pretty Print Representation | (https://hackage.haskell.o
 TestSuite  | (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.html)
 HUnit TestCases  |  (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.html)<br />(https://courses.cs.washington.edu/courses/cse341/18sp/haskell/running.html)
 Cabal Build  | (https://www.haskell.org/ghcup/steps/)<br />When installing dependencies, don't forget to use 'cabal install text --lib', same goes for HUnit and PrettyPrinter
-Fix Combinator (Extra) | (https://okmij.org/ftp/Haskell/types.html#Prepose)
+Fix Combinator (Extra) | (https://okmij.org/ftp/Haskell/types.html#Prepose)<br />(https://www.youtube.com/watch?v=GawiQQCn3bk)
 Misc | (https://typeclasses.substack.com/p/whats-new-in-ghc-2021)<br />(https://www.schoolofhaskell.com/user/mutjida/typed-tagless-final-linear-lambda-calculus/2-hoas-typed-tagless-final-interpreter)<br />(https://maksbotan.github.io/posts/2019-09-04-abstract-definitional-interpreters.html)<br />   (https://www.reddit.com/r/haskell/comments/424txm/what_is_the_advantage_of_tagless_final_style_over)<br />(https://www.youtube.com/watch?v=_KioQRICpmo)<br />   (https://discuss.ocaml.org/t/explain-like-im-5-years-old-tagless-final-pattern/9394/13)
 
 
