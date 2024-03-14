@@ -36,6 +36,7 @@ Multi-stage programming with functors and monads: eliminating abstraction overhe
 Following implementations and projects\
 https://okmij.org/ftp/tagless-final/index.html \
 https://www.tonicebrian.com/posts/2020/12/15/dominion.html \
+https://www.youtube.com/watch?v=MbFqJ2NHS8M \
 https://hackmd.io/@gridtools/BJ-tiaCSY \
 https://github.com/hermannhueck/tagless-final \
 https://jameshfisher.com/2018/03/15/a-lambda-calculus-interpreter-in-haskell \
@@ -54,7 +55,7 @@ For some expressive ideas and codebase which provided me some understanding of t
 
 Codes/Materials for understanding the project | Followed studies to build the Project
 ------------- | -------------
-Data Types & Class Types  | (https://okmij.org/ftp/tagless-final/course/lecture.pdf) - [3.4 - Tagless Final embedding]<br /> (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) - [2.1 - How to make encoding flexible: abstract the interpreter]<br />(https://okmij.org/ftp/tagless-final/index.html#course-oxford)<br />(https://serokell.io/blog/introduction-tagless-final)
+Data Types & Class Types  | (https://okmij.org/ftp/tagless-final/course/lecture.pdf) - [3.4 - Tagless Final embedding]<br /> (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) - [2.1 - How to make encoding flexible: abstract the interpreter]<br />(https://okmij.org/ftp/tagless-final/index.html#course-oxford)<br />(https://serokell.io/blog/introduction-tagless-final)<br />(https://www.youtube.com/watch?v=MbFqJ2NHS8M)-[A lot of stuffs]<br />
 Length of the Program  |  (https://gist.github.com/animatedlew/8138942)<br />(https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) - [2.2 Two tagless interpreters, proposition 3]<br />I was not fully sure about computing length of the program, as after I did ExpSym Runs , "As a usual programming language (i.e. that 'runs')" , I read through paper (i.e. JFP) and skim through some online sites which helped me to understand.<br /> Name change - [page-30, Oleg's Tagless Final "Since R (which is the name for the interpreter, not a type tag) is a newtype, at run-time, R x is indistinguishable from x. It becomes obvious that the interpreter R is meta-circular: object-language integers are the Haskell integers themselves; object-language addition is Haskell addition and object-language application is Haskell application."]<br /> 
 Program that Runs  | (https://okmij.org/ftp/tagless-final/course/lecture.pdf) - [3.4 Tagless final embedding, 29page, 27 page]
 Data.Text for Haskell & Pretty Print Representation | (https://hackage.haskell.org/package/text-2.1.1/docs/Data-Text.html) - Data.Text(Text) , Data.Text.IO (Outputs Hx, Pretty print when type is Text) , T.Pack (String -> Text), T.concat (concatenates Text)<br />(https://okmij.org/ftp/tagless-final/course/lecture.pdf)-[page-28 Pretty-print & Transformer]<br />(https://tarmean.github.io/prettyprinter.html)<br />(https://stackoverflow.com/questions/58960669/using-annotations-and-pretty-printer)<br /> (https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#g:5)<br />(https://github.com/quchen/show-prettyprint/blob/master/src/Text/Show/Prettyprint.hs)<br /> [This/prettyprinter was quite hard to understand at first yet it will take more time to understand this more or less]
