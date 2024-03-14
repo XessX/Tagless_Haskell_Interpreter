@@ -35,6 +35,7 @@ Multi-stage programming with functors and monads: eliminating abstraction overhe
 
 Following implementations and projects\
 https://okmij.org/ftp/tagless-final/index.html \
+https://github.com/JacquesCarette/finally-tagless \
 https://www.tonicebrian.com/posts/2020/12/15/dominion.html \
 https://www.youtube.com/watch?v=MbFqJ2NHS8M \
 https://hackmd.io/@gridtools/BJ-tiaCSY \
