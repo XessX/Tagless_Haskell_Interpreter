@@ -9,13 +9,19 @@ import Control.Monad (void)
 import Test.HUnit
 import qualified Data.Text as T
 import Control.Monad.Writer hiding (fix)
+import Control.Applicative (liftA2)
+import Control.Monad (liftM2) -- if you prefer to use liftM2
 
 
 class BooleanExp repr where
   bool :: Bool -> repr Bool
+  not_ :: repr Bool -> repr Bool
+  and_ :: repr Bool -> repr Bool -> repr Bool
+  or_ :: repr Bool -> repr Bool -> repr Bool  -- Assuming you might need this too
+
 
 class Conditional repr where
-    if_ :: repr Bool -> repr a -> repr a -> repr a
+    if_ :: Show a => repr Bool -> repr a -> repr a -> repr a
 
 class IntegerExp repr where
   int :: Int -> repr Int
@@ -37,15 +43,17 @@ class FixExp repr where
   fix :: (repr a -> repr a) -> repr a
 
 class Pairs repr where
-  pair :: repr a -> repr b -> repr (a, b)
-  first :: repr (a, b) -> repr a
-  second :: repr (a, b) -> repr b
-
+    pair :: (Show a, Show b) => repr a -> repr b -> repr (a, b)
+    first :: (Show a, Show b) => repr (a, b) -> repr a
+    second :: (Show a, Show b) => repr (a, b) -> repr b
 
 newtype Eval a = Eval { unEval :: a }
 
 instance BooleanExp Eval where
-  bool = Eval
+  bool b = Eval b
+  not_ (Eval b) = Eval (not b)
+  and_ (Eval a) (Eval b) = Eval (a && b)
+  or_ (Eval a) (Eval b) = Eval (a || b)
 
 instance Conditional Eval where
   if_ (Eval cond) (Eval thenExpr) (Eval elseExpr) = Eval $ if cond then thenExpr else elseExpr
@@ -77,6 +85,9 @@ newtype Length a = Length { unLength :: Int }
 
 instance BooleanExp Length where
   bool _ = Length 1
+  not_ (Length _) = Length 1
+  and_ (Length a) (Length b) = Length (a + b)
+  or_ (Length a) (Length b) = Length (a + b)
 
 instance Conditional Length where
     if_ _ (Length t) (Length f) = Length $ 1 + t + f
@@ -106,8 +117,12 @@ instance Pairs Length where
 
 newtype CodeGen a = CodeGen { unCodeGen :: ExpQ }
 
+
 instance BooleanExp CodeGen where
   bool b = CodeGen [| b |]
+  not_ (CodeGen b) = CodeGen [| not $(b) |]
+  and_ (CodeGen a) (CodeGen b) = CodeGen [| $(a) && $(b) |]
+  or_ (CodeGen a) (CodeGen b) = CodeGen [| $(a) || $(b) |]
 
 instance Conditional CodeGen where
     if_ (CodeGen b) (CodeGen t) (CodeGen f) = CodeGen [| if $(b) then $(t) else $(f) |]
@@ -162,7 +177,10 @@ wrap :: T.Text -> T.Text
 wrap text = "(" <> text <> ")"
 
 instance BooleanExp Pretty where
-    bool b = Pretty $ T.pack $ show b
+  bool b = Pretty $ T.pack $ show b
+  not_ (Pretty b) = Pretty $ "not (" <> b <> ")"
+  and_ (Pretty a) (Pretty b) = Pretty $ "(" <> a <> " && " <> b <> ")"
+  or_ (Pretty a) (Pretty b) = Pretty $ "(" <> a <> " || " <> b <> ")"
 
 instance Conditional Pretty where
     if_ (Pretty b) (Pretty t) (Pretty f) = 
@@ -199,7 +217,7 @@ instance Pairs Pretty where
 
 
 newtype Trace a = Trace { runTrace :: Writer [String] a }
-
+  deriving (Functor, Applicative, Monad)
 -- Utility function to log a step and return the value
 traceStep :: Show a => String -> a -> Trace a
 traceStep desc val = Trace $ do
@@ -207,75 +225,148 @@ traceStep desc val = Trace $ do
   return val
 
 instance BooleanExp Trace where
-  bool b = traceStep "bool" b
-
+  bool b = Trace $ tell ["bool " ++ show b] >> return b
+  not_ (Trace a) = Trace $ do
+    av <- a
+    let result = not av
+    tell ["not " ++ show av ++ " => " ++ show result]
+    return result
+  and_ (Trace a) (Trace b) = Trace $ do
+    av <- a
+    bv <- b
+    let result = av && bv
+    tell ["and " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
+    return result
+  or_ (Trace a) (Trace b) = Trace $ do
+    av <- a
+    bv <- b
+    let result = av || bv
+    tell ["or " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
+    return result
+  
 instance IntegerExp Trace where
-  int n = traceStep "int" n
-  add (Trace x) (Trace y) = Trace $ do
-    xv <- x
-    yv <- y
-    let result = xv + yv
-    tell ["add " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
-    return result
-  mult (Trace x) (Trace y) = Trace $ do
-    xv <- x
-    yv <- y
-    let result = xv * yv
-    tell ["mult " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
-    return result
-  neg (Trace x) = Trace $ do
-    xv <- x
-    let result = negate xv
-    tell ["neg " ++ show xv ++ " => " ++ show result]
-    return result
-  leq (Trace x) (Trace y) = Trace $ do
-    xv <- x
-    yv <- y
-    let result = xv < yv
-    tell ["leq " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
-    return result
+    int n = Trace $ do
+      tell ["int " ++ show n]
+      return n
+  
+    add (Trace a) (Trace b) = Trace $ do
+      av <- a
+      bv <- b
+      let result = av + bv
+      tell ["add " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
+      return result
+  
+    mult (Trace a) (Trace b) = Trace $ do
+      av <- a
+      bv <- b
+      let result = av * bv
+      tell ["mult " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
+      return result
+  
+    neg (Trace a) = Trace $ do
+      av <- a
+      tell ["neg " ++ show av]
+      return (-av)
+
+    leq (Trace a) (Trace b) = Trace $ do
+      av <- a
+      bv <- b
+      let result = av < bv
+      tell ["leq " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
+      return result
 
 instance Conditional Trace where
-  if_ (Trace cond) (Trace thenExpr) (Trace elseExpr) = Trace $ do
+  if_ :: (Show a) => Trace Bool -> Trace a -> Trace a -> Trace a
+  if_ (Trace cond) (Trace thn) (Trace els) = Trace $ do
     condVal <- cond
-    if condVal then thenExpr else elseExpr
+    if condVal then do
+      thnVal <- thn
+      tell ["then => " ++ show thnVal]
+      return thnVal
+    else do
+      elsVal <- els
+      tell ["else => " ++ show elsVal]
+      return elsVal
 
 instance EqualityExp Trace where
-  eqInt (Trace x) (Trace y) = Trace $ do
-    xv <- x
-    yv <- y
-    let result = xv == yv
-    tell ["eqInt " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
+  eqInt (Trace a) (Trace b) = Trace $ do
+    av <- a
+    bv <- b
+    let result = av == bv
+    tell ["eqInt " ++ show av ++ " " ++ show bv ++ " => " ++ show result]
     return result
-
+    
 
 instance Pairs Trace where
+  pair :: (Show a, Show b) => Trace a -> Trace b -> Trace (a, b)
   pair (Trace a) (Trace b) = Trace $ do
     av <- a
     bv <- b
-    let result = (av, bv)
-    -- Assuming av and bv can be shown because of the operations that created them
-    tell [concat ["pair ", "(...)", " ", "(...)", " => ", "(...)"]]
-    return result
+    tell ["pair (" ++ show av ++ ", " ++ show bv ++ ")"]
+    return (av, bv)
 
+  first :: (Show a, Show b) => Trace (a, b) -> Trace a
   first (Trace ab) = Trace $ do
     abv <- ab
-    case abv of
-      (a, _) -> do
-        let result = a
-        -- Similarly, assuming a can be shown because of how it was created
-        tell [concat ["first ", "(...)", " => ", "(...)"]]
-        return result
+    tell ["first (" ++ show abv ++ ") => " ++ show (fst abv)]
+    return (fst abv)
 
+  second :: (Show a, Show b) => Trace (a, b) -> Trace b
   second (Trace ab) = Trace $ do
     abv <- ab
-    case abv of
-      (_, b) -> do
-        let result = b
-        -- Assuming b can be shown
-        tell [concat ["second ", "(...)", " => ", "(...)"]]
-        return result
+    tell ["second (" ++ show abv ++ ") => " ++ show (snd abv)]
+    return (snd abv)
 
+
+
+
+data Partial a = Known a | Dynamic (Trace a)
+
+instance BooleanExp Partial where
+  bool b = Known b
+  
+  not_ (Known b) = Known (not b)
+  not_ (Dynamic e) = Dynamic (fmap not e)
+
+  and_ (Known True) b = b  -- Correctly pass `b`
+  and_ (Known False) _ = Known False
+  and_ a (Known True) = a  -- Correctly pass `a`
+  and_ _ (Known False) = Known False
+  and_ (Dynamic a) (Dynamic b) = Dynamic (liftA2 (&&) a b)
+
+  or_ (Known True) _ = Known True
+  or_ (Known False) b = b
+  or_ _ (Known True) = Known True
+  or_ a (Known False) = a
+  or_ (Dynamic a) (Dynamic b) = Dynamic (liftA2 (||) a b)
+
+instance IntegerExp Partial where
+  int n = Known n
+
+  add (Known a) (Known b) = Known (a + b)
+  add a b = Dynamic (liftA2 (+) (toDynamic a) (toDynamic b))
+
+  mult (Known a) (Known b) = Known (a * b)
+  mult a b = Dynamic (liftA2 (*) (toDynamic a) (toDynamic b))
+
+  neg (Known n) = Known (negate n)
+  neg (Dynamic e) = Dynamic (fmap negate e)
+
+  leq (Known a) (Known b) = Known (a < b)
+  leq (Dynamic a) (Dynamic b) = Dynamic $ do
+    av <- a
+    bv <- b
+    return (av < bv)
+  leq _ _ = Dynamic $ return False  -- Handling partially known values
+
+toDynamic :: Partial a -> Trace a
+toDynamic (Known a) = return a
+toDynamic (Dynamic e) = e
+
+
+
+partialExpr :: Partial Int
+partialExpr = add (int 5) (Dynamic $ return 10)  -- Assume 10 is a runtime value
 
 myPair :: (Pairs repr, IntegerExp repr) => repr (Int, Int)
 myPair = pair (int 3) (int 5)
@@ -408,6 +499,21 @@ exampleFirstExpr = first $ pair (int 1) (int 2)
 exampleSecondExpr :: Trace Int
 exampleSecondExpr = second $ pair (int 3) (int 4)
 
+testPairs :: Trace (Int, Int)
+testPairs = pair (int 5) (int 10)
+
+testFirst :: Trace Int
+testFirst = first testPairs
+
+testSecond :: Trace Int
+testSecond = second testPairs
+
+testEquality :: Trace Bool
+testEquality = eqInt (int 5) (int 5)
+
+testConditional :: Trace Int
+testConditional = if_ (eqInt (int 5) (int 10)) (int 1) (int 2)
+
 
 main :: IO ()
 main = do
@@ -495,3 +601,16 @@ main = do
 
     putStrLn "\n--- Fix Example ---"
     putStrLn $ T.unpack $ unPretty $ fix $ \f -> lam $ \n -> if_ (leq n (int 1)) n (add (app f (sub n (int 1))) (int 1))
+
+
+    let runTraceTest test = mapM_ putStrLn . snd . runWriter $ runTrace test
+    putStrLn "Testing Pairs:"
+    runTraceTest testPairs
+    putStrLn "\nTesting First Projection:"
+    runTraceTest testFirst
+    putStrLn "\nTesting Second Projection:"
+    runTraceTest testSecond
+    putStrLn "\nTesting Equality:"
+    runTraceTest testEquality
+    putStrLn "\nTesting Conditional:"
+    runTraceTest testConditional

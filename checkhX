@@ -2,15 +2,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax (lift)
+import Language.Haskell.TH.Syntax (lift, Exp, Q)
 import Control.Monad (void)
 import Test.HUnit
 import qualified Data.Text as T
 import Control.Monad.Writer hiding (fix)
 import Control.Applicative (liftA2)
 import Control.Monad (liftM2) -- if you prefer to use liftM2
+import Data.Kind (Type)
 
 
 class BooleanExp repr where
