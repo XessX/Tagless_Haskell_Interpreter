@@ -1,0 +1,497 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax (lift)
+import Control.Monad (void)
+import Test.HUnit
+import qualified Data.Text as T
+import Control.Monad.Writer hiding (fix)
+
+
+class BooleanExp repr where
+  bool :: Bool -> repr Bool
+
+class Conditional repr where
+    if_ :: repr Bool -> repr a -> repr a -> repr a
+
+class IntegerExp repr where
+  int :: Int -> repr Int
+  add :: repr Int -> repr Int -> repr Int
+  mult :: repr Int -> repr Int -> repr Int
+  neg :: repr Int -> repr Int
+  leq :: repr Int -> repr Int -> repr Bool
+  sub :: IntegerExp repr => repr Int -> repr Int -> repr Int
+  sub x y = add x (neg y)
+  
+class EqualityExp repr where
+  eqInt :: repr Int -> repr Int -> repr Bool
+
+class LambdaExp repr where
+  lam :: (repr a -> repr b) -> repr (a -> b)
+  app :: repr (a -> b) -> repr a -> repr b
+
+class FixExp repr where
+  fix :: (repr a -> repr a) -> repr a
+
+class Pairs repr where
+  pair :: repr a -> repr b -> repr (a, b)
+  first :: repr (a, b) -> repr a
+  second :: repr (a, b) -> repr b
+
+
+newtype Eval a = Eval { unEval :: a }
+
+instance BooleanExp Eval where
+  bool = Eval
+
+instance Conditional Eval where
+  if_ (Eval cond) (Eval thenExpr) (Eval elseExpr) = Eval $ if cond then thenExpr else elseExpr
+
+instance IntegerExp Eval where
+  int = Eval
+  add (Eval x) (Eval y) = Eval $ x + y
+  mult (Eval x) (Eval y) = Eval $ x * y
+  neg (Eval x) = Eval $ -x
+  leq (Eval x) (Eval y) = Eval $ x < y
+
+instance EqualityExp Eval where
+  eqInt (Eval x) (Eval y) = Eval $ x == y
+
+instance LambdaExp Eval where
+  lam f = Eval $ \x -> unEval (f (Eval x))
+  app (Eval f) (Eval x) = Eval $ f x
+
+instance FixExp Eval where
+    fix f = Eval $ fx (unEval . f . Eval) where fx g = g (fx g)
+
+instance Pairs Eval where
+  pair (Eval a) (Eval b) = Eval (a, b)
+  first (Eval (a, _)) = Eval a
+  second (Eval (_, b)) = Eval b
+
+
+newtype Length a = Length { unLength :: Int }
+
+instance BooleanExp Length where
+  bool _ = Length 1
+
+instance Conditional Length where
+    if_ _ (Length t) (Length f) = Length $ 1 + t + f
+
+instance IntegerExp Length where
+  int _ = Length 1
+  add (Length x) (Length y) = Length $ 1 + x + y
+  mult (Length x) (Length y) = Length $ 1 + x + y
+  neg (Length x) = Length $ 1 + x
+  leq (Length x) (Length y) = Length $ 1 + x + y
+
+instance EqualityExp Length where
+  eqInt (Length x) (Length y) = Length $ 1 + x + y
+
+instance LambdaExp Length where
+  lam f = Length $ 1 + unLength (f (Length 1))
+  app (Length f) (Length x) = Length $ 1 + f + x
+
+instance FixExp Length where
+  fix f = Length $ 1 + unLength (f (Length 1))
+
+instance Pairs Length where
+  pair (Length a) (Length b) = Length $ 1 + a + b
+  first (Length _) = Length 1
+  second (Length _) = Length 1
+
+
+newtype CodeGen a = CodeGen { unCodeGen :: ExpQ }
+
+instance BooleanExp CodeGen where
+  bool b = CodeGen [| b |]
+
+instance Conditional CodeGen where
+    if_ (CodeGen b) (CodeGen t) (CodeGen f) = CodeGen [| if $(b) then $(t) else $(f) |]
+
+instance IntegerExp CodeGen where
+  int n = CodeGen [| n |]
+  add (CodeGen x) (CodeGen y) = CodeGen [| $(x) + $(y) |]
+  mult (CodeGen x) (CodeGen y) = CodeGen [| $(x) * $(y) |]
+  neg (CodeGen x) = CodeGen [| negate $(x) |]
+  leq (CodeGen x) (CodeGen y) = CodeGen [| $(x) < $(y) |]
+
+instance EqualityExp CodeGen where
+  eqInt (CodeGen x) (CodeGen y) = CodeGen [| $(x) == $(y) |]
+
+instance LambdaExp CodeGen where
+    lam f = 
+        let argName = mkName $ "x" ++ show uniqueId  -- Use mkName to generate a Haskell variable name
+            uniqueId = 1  -- Simplified: In practice, manage unique IDs more dynamically
+            bodyExp = unCodeGen (f (CodeGen [| $(varE argName) |]))
+        in CodeGen $ lamE [varP argName] bodyExp
+    app (CodeGen f) (CodeGen x) = CodeGen [| $(f) $(x) |]
+
+instance FixExp CodeGen where
+    fix f = CodeGen $ do
+        -- Generate a fresh name for the recursive function
+        fName <- newName "recFunc"
+        -- Create a lambda expression taking itself as an argument for recursion
+        let args = [varP fName]
+            body = unCodeGen $ f (CodeGen (varE fName))
+        -- Construct the let expression for the recursive function
+        lamE args (letE [valD (varP fName) (normalB body) []] (varE fName))
+
+
+instance Pairs CodeGen where
+  pair (CodeGen a) (CodeGen b) = CodeGen [| ($(a), $(b)) |]
+  first (CodeGen a) = CodeGen [| first $(a) |]
+  second (CodeGen a) = CodeGen [| second $(a) |]
+
+
+newtype Pretty a = Pretty { unPretty :: T.Text }
+
+parenthesize :: T.Text -> T.Text
+parenthesize text = T.concat [T.pack "(", text, T.pack ")"]
+
+-- I'll demonstrate the correction on a few instances. You should apply the same logic to the rest.
+-- Helper function for indentation
+indent :: Int -> T.Text -> T.Text
+indent level text = T.unlines $ map (T.replicate level " " <>) (T.lines text)
+
+-- Helper function to increase readability by wrapping expressions
+wrap :: T.Text -> T.Text
+wrap text = "(" <> text <> ")"
+
+instance BooleanExp Pretty where
+    bool b = Pretty $ T.pack $ show b
+
+instance Conditional Pretty where
+    if_ (Pretty b) (Pretty t) (Pretty f) = 
+        Pretty $ "if " <> b <> "\nthen " <> indent 2 t <> "\nelse " <> indent 2 f
+
+instance IntegerExp Pretty where
+    int n = Pretty $ T.pack $ show n
+    add (Pretty x) (Pretty y) = Pretty $ wrap $ x <> " + " <> "\n" <> y
+    mult (Pretty x) (Pretty y) = Pretty $ wrap $ x <> " * " <> "\n" <> y
+    neg (Pretty x) = Pretty $ "-" <> x
+    leq (Pretty x) (Pretty y) = Pretty $ wrap $ x <> " < " <> "\n" <> y
+
+instance EqualityExp Pretty where
+    eqInt (Pretty x) (Pretty y) = Pretty $ wrap $ x <> " == " <> "\n" <> y
+
+instance LambdaExp Pretty where
+    lam f = 
+        let arg = "x"  -- Simplicity: omitting unique ID for brevity
+            body = unPretty $ f (Pretty arg)
+        in Pretty $ "\\ " <> arg <> " -> \n" <> indent 2 body
+    app (Pretty f) (Pretty x) = Pretty $ wrap f <> " " <> wrap x
+
+instance FixExp Pretty where
+    fix f = 
+        let recVar = "fix"
+            body = unPretty $ f (Pretty recVar)
+        in Pretty $ "fix \n" <> indent 2 (recVar <> " -> \n" <> indent 2 body)
+
+
+instance Pairs Pretty where
+  pair (Pretty a) (Pretty b) = Pretty $ T.concat ["(", a, ", ", b, ")"]
+  first (Pretty a) = Pretty $ T.concat ["first ", a]
+  second (Pretty a) = Pretty $ T.concat ["second ", a]
+
+
+newtype Trace a = Trace { runTrace :: Writer [String] a }
+
+-- Utility function to log a step and return the value
+traceStep :: Show a => String -> a -> Trace a
+traceStep desc val = Trace $ do
+  tell [desc ++ " => " ++ show val]
+  return val
+
+instance BooleanExp Trace where
+  bool b = traceStep "bool" b
+
+instance IntegerExp Trace where
+  int n = traceStep "int" n
+  add (Trace x) (Trace y) = Trace $ do
+    xv <- x
+    yv <- y
+    let result = xv + yv
+    tell ["add " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
+    return result
+  mult (Trace x) (Trace y) = Trace $ do
+    xv <- x
+    yv <- y
+    let result = xv * yv
+    tell ["mult " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
+    return result
+  neg (Trace x) = Trace $ do
+    xv <- x
+    let result = negate xv
+    tell ["neg " ++ show xv ++ " => " ++ show result]
+    return result
+  leq (Trace x) (Trace y) = Trace $ do
+    xv <- x
+    yv <- y
+    let result = xv < yv
+    tell ["leq " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
+    return result
+
+instance Conditional Trace where
+  if_ (Trace cond) (Trace thenExpr) (Trace elseExpr) = Trace $ do
+    condVal <- cond
+    if condVal then thenExpr else elseExpr
+
+instance EqualityExp Trace where
+  eqInt (Trace x) (Trace y) = Trace $ do
+    xv <- x
+    yv <- y
+    let result = xv == yv
+    tell ["eqInt " ++ show xv ++ " " ++ show yv ++ " => " ++ show result]
+    return result
+
+
+instance Pairs Trace where
+  pair (Trace a) (Trace b) = Trace $ do
+    av <- a
+    bv <- b
+    let result = (av, bv)
+    -- Assuming av and bv can be shown because of the operations that created them
+    tell [concat ["pair ", "(...)", " ", "(...)", " => ", "(...)"]]
+    return result
+
+  first (Trace ab) = Trace $ do
+    abv <- ab
+    case abv of
+      (a, _) -> do
+        let result = a
+        -- Similarly, assuming a can be shown because of how it was created
+        tell [concat ["first ", "(...)", " => ", "(...)"]]
+        return result
+
+  second (Trace ab) = Trace $ do
+    abv <- ab
+    case abv of
+      (_, b) -> do
+        let result = b
+        -- Assuming b can be shown
+        tell [concat ["second ", "(...)", " => ", "(...)"]]
+        return result
+
+
+myPair :: (Pairs repr, IntegerExp repr) => repr (Int, Int)
+myPair = pair (int 3) (int 5)
+
+myfirst :: (Pairs repr, IntegerExp repr) => repr Int
+myfirst = first myPair
+
+mysecond :: (Pairs repr, IntegerExp repr) => repr Int
+mysecond = second myPair
+
+
+myComparison :: (IntegerExp repr) => repr Bool
+myComparison = leq (int 1) (int 2)
+
+factorial :: (LambdaExp repr, FixExp repr, IntegerExp repr, Conditional repr, EqualityExp repr) => repr (Int -> Int)
+factorial = fix $ \f -> lam $ \n ->
+  if_ (eqInt n (int 0))
+    (int 1)
+    (mult n (app f (sub n (int 1))))
+
+fibonacci :: (LambdaExp repr, FixExp repr, IntegerExp repr, Conditional repr, EqualityExp repr) => repr (Int -> Int)
+fibonacci = fix $ \f -> lam $ \n ->
+  if_ (eqInt n (int 0))
+    (int 0)
+    (if_ (eqInt n (int 1))
+      (int 1)
+      (add (app f (sub n (int 1))) (app f (sub n (int 2)))))
+
+sumToN :: (FixExp repr, LambdaExp repr, IntegerExp repr, Conditional repr, EqualityExp repr) => repr (Int -> Int)
+sumToN = fix $ \f -> lam $ \n ->
+  if_ (eqInt n (int 0))
+    (int 0)
+    (add n (app f (sub n (int 1))))
+
+
+evalFactorial :: Int -> Int
+evalFactorial n = unEval $ app factorial (int n)
+
+evalFibonacci :: Int -> Int
+evalFibonacci n = unEval $ app fibonacci (int n)
+
+evalSumToN :: Int -> Int
+evalSumToN n = unEval $ app sumToN (int n)
+
+-- Function to generate Haskell source code from our DSL's expression
+genHaskell :: CodeGen a -> Q Exp
+genHaskell = unCodeGen
+
+prettySumToN :: Int -> T.Text
+prettySumToN n = unPretty $ app sumToN (int n)
+
+
+-- Define test cases
+pairFirstTest :: Test
+pairFirstTest = TestCase (assertEqual "first element of myPair" 3 (unEval myfirst))
+
+pairSecondTest :: Test
+pairSecondTest = TestCase (assertEqual "second element of myPair" 5 (unEval mysecond))
+
+factorialTest :: Test
+factorialTest = TestCase (assertEqual "factorial of 5" 120 (evalFactorial 5))
+
+fibonacciTest :: Test
+fibonacciTest = TestCase (assertEqual "fibonacci of 10" 55 (evalFibonacci 10))
+
+sumToNTest :: Test
+sumToNTest = TestCase (assertEqual "sum to 5" 15 (evalSumToN 5))
+
+-- Aggregate all test cases
+tests :: Test
+tests = TestList [pairFirstTest, pairSecondTest, factorialTest, fibonacciTest, sumToNTest]
+
+
+
+
+
+boolTest :: Test
+boolTest = TestList [
+  TestCase $ assertEqual "eval bool True" True (unEval $ bool True),
+  TestCase $ assertEqual "pretty bool False" "False" (T.unpack $ unPretty $ bool False)
+  ]
+
+intTest :: Test
+intTest = TestList [
+  TestCase $ assertEqual "eval add 1+2" 3 (unEval $ add (int 1) (int 2)),
+  TestCase $ assertEqual "pretty mult 3*4" "(3 * 4)" (T.unpack $ unPretty $ mult (int 3) (int 4))
+  ]
+
+conditionalTest :: Test
+conditionalTest = TestCase $ assertEqual "eval if_ True 1 2" 1 (unEval $ if_ (bool True) (int 1) (int 2))
+
+lambdaAndFixTest :: Test
+lambdaAndFixTest = TestList [
+  TestCase $ assertEqual "eval factorial 5" 120 (evalFactorial 5),
+  TestCase $ assertEqual "eval fibonacci 10" 55 (evalFibonacci 10)
+  ]
+
+  
+
+evaluateWithTrace :: Trace a -> IO ()
+evaluateWithTrace (Trace action) = mapM_ putStrLn $ snd $ runWriter action
+
+exampleExpr :: Trace Int
+exampleExpr = add (int 1) (int 2)
+
+
+-- Pair creation and manipulation expressions
+examplePairCreation :: Trace (Int, Bool)
+examplePairCreation = pair (int 42) (bool True)
+
+examplePairFirst :: Trace Int
+examplePairFirst = first examplePairCreation
+
+examplePairSecond :: Trace Bool
+examplePairSecond = second examplePairCreation
+
+pairTests :: Test
+pairTests = TestList [
+    TestCase $ assertEqual "pair creation" ((42, True), ["pair (...) (...) => (...)"]) (runWriter $ runTrace examplePairCreation),
+    TestCase $ assertEqual "pair first" (42, ["first (...) => (...)"]) (runWriter $ runTrace examplePairFirst),
+    TestCase $ assertEqual "pair second" (True, ["second (...) => (...)"]) (runWriter $ runTrace examplePairSecond)
+  ]
+
+examplePairExpr :: Trace (Int, Int)
+examplePairExpr = pair (int 1) (int 2)
+
+exampleFirstExpr :: Trace Int
+exampleFirstExpr = first $ pair (int 1) (int 2)
+
+exampleSecondExpr :: Trace Int
+exampleSecondExpr = second $ pair (int 3) (int 4)
+
+
+main :: IO ()
+main = do
+    
+    putStrLn "\nTestCases 1:\n"
+    runTestTT tests
+    putStrLn "\nTestCases 2:"
+    void $ runTestTT $ TestList [boolTest, intTest, conditionalTest, lambdaAndFixTest]
+
+
+    -- Demonstrations
+    putStrLn $ "The first element of myPair is: " ++ show (unEval myfirst)
+    putStrLn $ "The second element of myPair is: " ++ show (unEval mysecond)
+
+    putStrLn "\n--- Boolean Expression Demonstrations ---"
+    putStrLn "Eval bool True:"
+    print $ unEval $ bool True
+    putStrLn "Pretty bool False:"
+    putStrLn $ T.unpack $ unPretty $ bool False
+
+    putStrLn "\n--- Integer Expression Demonstrations ---"
+    putStrLn "Eval add 1 + 2:"
+    print $ unEval $ add (int 1) (int 2)
+    putStrLn "Pretty mult 3 * 4:"
+    putStrLn $ T.unpack $ unPretty $ mult (int 3) (int 4)
+
+    putStrLn "\n--- Conditional Expression Demonstrations ---"
+    putStrLn "Eval if True then 1 else 2:"
+    print $ unEval $ if_ (bool True) (int 1) (int 2)
+    putStrLn "Pretty if False then 3 else 4:"
+    putStrLn $ T.unpack $ unPretty $ if_ (bool False) (int 3) (int 4)
+
+  -- Recursion Examples: Factorial and Fibonacci
+    putStrLn "\n--- Recursion Examples ---"
+    putStrLn "Factorial of 5 (Eval):"
+    print $ evalFactorial 5
+    putStrLn "Fibonacci of 10 (Eval):"
+    print $ evalFibonacci 10
+
+    putStrLn "\nPretty print Factorial (5):"
+    putStrLn $ T.unpack $ prettySumToN 5  -- Assuming prettySumToN demonstrates the factorial function for brevity
+
+    putStrLn "\nCodeGen demonstration of sumToN (5):"
+    codeAsString <- runQ $ pprint <$> genHaskell (app sumToN (int 5))
+    putStrLn codeAsString
+
+    putStrLn "\n-----Trace Eval:-----\n"
+
+    evaluateWithTrace exampleExpr
+
+    -- Running existing demonstrations
+    putStrLn "\n--- Existing Demonstrations ---\n"
+    -- (Assuming previous demonstrations are here)
+
+    -- New demonstrations for pairs
+    putStrLn "\n--- Pair Demonstrations ---\n"
+    putStrLn "Evaluating examplePairCreation with tracing:\n"
+    evaluateWithTrace examplePairCreation
+    putStrLn "\nEvaluating examplePairFirst with tracing:\n"
+    evaluateWithTrace examplePairFirst
+    putStrLn "\nEvaluating examplePairSecond with tracing:\n"
+    evaluateWithTrace examplePairSecond
+
+    -- Running the test suite, now including pair tests
+    putStrLn "\nRunning the test suite, including pair tests:"
+    _ <- runTestTT pairTests
+    return ()
+
+    putStrLn "\nEvaluating examplePairExpr:\n"
+    evaluateWithTrace examplePairExpr
+    putStrLn "\nEvaluating exampleFirstExpr:\n"
+    evaluateWithTrace exampleFirstExpr
+    putStrLn "\nEvaluating exampleSecondExpr:\n"
+    evaluateWithTrace exampleSecondExpr
+
+
+    putStrLn "\nPretty print demonstration for complex expressions:"
+
+    putStrLn "\n--- Conditional Example ---"
+    putStrLn $ T.unpack $ unPretty $ if_ (bool True) (add (int 1) (int 2)) (mult (int 3) (int 4))
+
+    putStrLn "\n--- Lambda Example ---"
+    let lambdaExpr = lam $ \x -> add x (int 1)
+    putStrLn $ T.unpack $ unPretty $ app lambdaExpr (int 10)
+
+    putStrLn "\n--- Fix Example ---"
+    putStrLn $ T.unpack $ unPretty $ fix $ \f -> lam $ \n -> if_ (leq n (int 1)) n (add (app f (sub n (int 1))) (int 1))

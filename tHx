@@ -1,0 +1,154 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+import Language.Haskell.TH
+import Data.Kind (Type)
+
+data Result a = Success a | Failure String
+
+data Expr = Const Int
+          | Add Expr Expr
+          | Mul Expr Expr
+
+compileExpr :: Expr -> Q Exp
+compileExpr (Const i) = [| i |]
+compileExpr (Add e1 e2) = [| $(compileExpr e1) + $(compileExpr e2) |]
+compileExpr (Mul e1 e2) = [| $(compileExpr e1) * $(compileExpr e2) |]
+
+compileExprTyped :: Expr -> Q (TExp Int)
+compileExprTyped (Const i) = [|| i ||]
+compileExprTyped (Add e1 e2) = [|| $$(compileExprTyped e1) + $$(compileExprTyped e2) ||]
+compileExprTyped (Mul e1 e2) = [|| $$(compileExprTyped e1) * $$(compileExprTyped e2) ||]
+
+
+type family Semantics a where
+  Semantics Int = Integer
+  Semantics Bool = Bool
+
+
+
+-- Extending Expr with more constructors and types
+data ExprType = TInt | TBool
+
+data TypedExpr a where
+    LitInt  :: Int -> TypedExpr Int
+    LitBool :: Bool -> TypedExpr Bool
+    AddExpr :: TypedExpr Int -> TypedExpr Int -> TypedExpr Int
+    MulExpr :: TypedExpr Int -> TypedExpr Int -> TypedExpr Int
+    AndExpr :: TypedExpr Bool -> TypedExpr Bool -> TypedExpr Bool
+    OrExpr  :: TypedExpr Bool -> TypedExpr Bool -> TypedExpr Bool
+    EqExpr  :: Eq a => TypedExpr a -> TypedExpr a -> TypedExpr Bool
+    IfExpr  :: TypedExpr Bool -> TypedExpr a -> TypedExpr a -> TypedExpr a
+
+
+-- Safe conditional function
+safeIf :: TypedExpr Bool -> TypedExpr a -> TypedExpr a -> TypedExpr a
+safeIf = IfExpr
+    
+addTypedExpr :: TypedExpr Int -> TypedExpr Int -> TypedExpr Int
+addTypedExpr = AddExpr
+
+mulTypedExpr :: TypedExpr Int -> TypedExpr Int -> TypedExpr Int
+mulTypedExpr = MulExpr
+
+
+-- Evaluation function
+eval :: TypedExpr a -> a
+eval (LitInt i) = i
+eval (LitBool b) = b
+eval (AddExpr e1 e2) = eval e1 + eval e2
+eval (MulExpr e1 e2) = eval e1 * eval e2
+
+-- The Partial data type declaration
+data Partial :: Type -> Type where
+  PInt  :: Maybe Int -> Partial Int
+  PBool :: Maybe Bool -> Partial Bool
+  PAdd  :: Partial Int -> Partial Int -> Partial Int
+  PMul  :: Partial Int -> Partial Int -> Partial Int
+  PEq   :: Eq a => Partial a -> Partial a -> Partial Bool
+
+-- The partialEval function definition
+partialEval :: Partial a -> Maybe a
+partialEval (PInt (Just i)) = Just i
+partialEval (PBool (Just b)) = Just b
+partialEval (PAdd pa pb) = do
+  a <- partialEval pa
+  b <- partialEval pb
+  return (a + b)
+partialEval (PMul pa pb) = do
+  a <- partialEval pa
+  b <- partialEval pb
+  return (a * b)
+partialEval (PEq pa pb) = do
+  a <- partialEval pa
+  b <- partialEval pb
+  Just (a == b)
+partialEval _ = Nothing
+  
+
+
+type family ResultType a b where
+  ResultType TInt TInt = TInt
+  ResultType TBool TBool = TBool
+
+-- Example use in a hypothetical DSL function
+combine :: TypedExpr a -> TypedExpr b -> Maybe (TypedExpr c)
+combine = undefined  -- Placeholder; define specific cases as needed
+
+-- A typed expression DSL using phantom types for additional type safety
+data SafeExpr a where
+    SInt  :: Int -> SafeExpr Int
+    SBool :: Bool -> SafeExpr Bool
+    SAdd  :: SafeExpr Int -> SafeExpr Int -> SafeExpr Int
+    -- Using a phantom type to indicate the operation type
+    SMul  :: SafeExpr Int -> SafeExpr Int -> SafeExpr Int
+    SEq   :: Eq a => SafeExpr a -> SafeExpr a -> SafeExpr Bool
+
+
+double :: SafeExpr Int -> SafeExpr Int
+double expr = SMul (SInt 2) expr
+
+data Sign = Positive | NonPositive | AnySign deriving (Eq, Show)
+data State = TrueState | FalseState | AnyState deriving (Eq, Show)
+
+analyze :: Expr -> Expr
+analyze (Const i) = Const i
+analyze (Add e1 e2) = Add (analyze e1) (analyze e2)
+analyze (Mul e1 e2) = Mul (analyze e1) (analyze e2)
+
+-- A new approach for 'compileAndRunExpr' that clarifies its purpose
+compileAndRunExpr :: Expr -> IO ()
+compileAndRunExpr expr = do
+    let compiledUntyped = compileExpr expr
+    putStrLn "Compiled Haskell code (Untyped):"
+    print =<< runQ compiledUntyped
+
+    -- Note on Typed Compilation
+    putStrLn "\nNote: Compiled Haskell code for Typed expressions is generated at compile time. See source for Template Haskell expressions."
+
+
+
+-- Demonstration of evaluating a typed expression
+evaluateTypedExpr :: IO ()
+evaluateTypedExpr = do
+    let expr = AddExpr (LitInt 5) (MulExpr (LitInt 2) (LitInt 3))
+    putStrLn $ "Evaluating Typed Expression: " ++ show (eval expr)
+
+-- Demonstration of partial evaluation
+partialEvalDemo :: IO ()
+partialEvalDemo = do
+    let pExpr = PAdd (PInt (Just 3)) (PInt (Just 4))
+    putStrLn $ "Partial Evaluation: " ++ show (partialEval pExpr)
+
+-- Adjust 'main' to reflect changes
+main :: IO ()
+main = do
+    compileAndRunExpr (Add (Const 1) (Mul (Const 2) (Const 3)))
+    evaluateTypedExpr
+    partialEvalDemo

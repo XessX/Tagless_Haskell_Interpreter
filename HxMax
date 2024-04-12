@@ -1,0 +1,289 @@
+import Data.Text (Text)
+import qualified Data.Text as Tx
+import Prettyprinter (pretty, align, group, parens, (<+>), hsep, vsep, indent, Doc, layoutPretty, defaultLayoutOptions, softline)
+import Prettyprinter.Render.Text (renderStrict)
+import Data.List (intersperse)
+
+import qualified Data.Text.IO as IO
+import Test.HUnit
+
+-- Define data types if they are used in the language
+data MDouble = M Double
+ | VZ
+data NInt = N Int
+ | VZ2
+
+-- Define the type class for expressions
+class ExpSYM repr where
+    int :: Int -> repr Int
+    bool :: Bool -> repr Bool
+    float :: Float -> repr Float
+    add :: repr Int -> repr Int -> repr Int
+    neg :: repr Int -> repr Int
+    sub :: repr Int -> repr Int -> repr Int
+    mul :: repr Int -> repr Int -> repr Int
+    leql :: repr Int -> repr Int -> repr Bool
+    lth :: repr Int -> repr Int -> repr Bool
+    neql :: repr Int -> repr Int -> repr Bool
+    eql :: repr Int -> repr Int -> repr Bool
+    gtr :: repr Int -> repr Int -> repr Bool
+    gtre :: repr Int -> repr Int -> repr Bool
+    if_el :: repr Bool -> repr a -> repr a -> repr a
+    lam :: (repr a -> repr b) -> repr (a -> b)
+    app :: repr (a -> b) -> repr a -> repr b
+    fix :: (repr a -> repr a) -> repr a
+    fst_ :: repr (a, b) -> repr a
+    snd_ :: repr (a, b) -> repr b
+    pair :: repr a -> repr b -> repr (a, b)
+
+    -- Computes Length of the program
+newtype Len a = Len { unLen :: Int }
+deriving instance Eq a => Eq (Len a)
+
+instance ExpSYM Len where
+    int _  = Len 1
+    bool _ = Len 1
+    float _ = Len 1
+    lam f = Len( unLen (f (Len 0)) + 1 )
+    app e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    fix f = Len( unLen (f (Len 0)) + 1 )
+    add e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    sub e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    mul e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    neg e1 = Len( unLen e1 + 1 )            
+    leql e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    lth e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    neql e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    eql e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    gtr e1 e2 = Len( unLen e1 + unLen e2 + 1 )
+    gtre e1 e2 = Len( unLen e1 + unLen e2 + 1 )    
+    if_el be et ee = Len( unLen be +  unLen et + unLen ee  + 1 )
+    fst_ e = Len(unLen e + 1)
+    snd_ e = Len(unLen e + 1)    
+    pair e1 e2 = Len(unLen e1 + unLen e2 + 1) 
+
+    -- An Runs interpreter that executes expressions
+newtype Runs a = Runs { unRuns :: a } 
+deriving instance Eq a => Eq (Runs a)
+
+instance ExpSYM Runs where
+    int x = Runs x
+    bool b = Runs b
+    float f = Runs f
+    add (Runs x) (Runs y) = Runs (x + y)
+    neg (Runs x) = Runs (negate x)
+    sub (Runs x) (Runs y) = Runs (x - y)
+    mul (Runs x) (Runs y) = Runs (x * y)
+    leql (Runs x) (Runs y) = Runs (x <= y)
+    lth (Runs x) (Runs y) = Runs (x < y)
+    neql (Runs x) (Runs y) = Runs (x /= y)
+    eql (Runs x) (Runs y) = Runs (x == y)
+    gtr (Runs x) (Runs y) = Runs (x > y)
+    gtre (Runs x) (Runs y) = Runs (x >= y)
+    if_el (Runs b) (Runs x) (Runs y) = Runs (if b then x else y)
+    lam f = Runs (\x -> unRuns (f (Runs x)))
+    app (Runs f) (Runs x) = Runs (f x)
+    fix f = Runs (let {x = unRuns (f (Runs x))} in x)
+    pair (Runs x) (Runs y) = Runs (x, y)
+    fst_ (Runs (x, _)) = Runs x
+    snd_ (Runs (_, y)) = Runs y
+
+-- factoring repetition of codes
+bOp :: Text -> Text -> Text -> Text
+bOp op x y = Tx.concat [Tx.pack "(", x, Tx.pack" ", op, Tx.pack " ", y, Tx.pack ")"]
+
+-- Haskell Representation interpreter
+newtype Hx a = Hx 
+ { unHx :: Text }
+
+instance ExpSYM Hx where
+    int x = Hx $ Tx.pack $ show x
+    bool b = Hx $ Tx.pack $ show b
+    float f = Hx $ Tx.pack $ show f
+    add (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "+") x y
+    neg (Hx x) = Hx
+     $ Tx.concat [Tx.pack "(-", x, Tx.pack ")"]
+    sub (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "-") x y
+    mul (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "*") x y
+    leql (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "<=") x y
+    lth (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "<") x y
+    neql (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "/=") x y
+    eql (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack "==") x y
+    gtr (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack ">") x y
+    gtre (Hx x) (Hx y) = Hx
+     $ bOp (Tx.pack ">=") x y
+    if_el (Hx b) (Hx x) (Hx y) = Hx
+     $ Tx.concat [Tx.pack "if ", b, Tx.pack " then ", x, Tx.pack " else ", y]
+    lam f = Hx
+     $ Tx.concat [Tx.pack "\\x -> ", unHx (f (Hx $ Tx.pack "x"))]
+    app (Hx f) (Hx x) = Hx
+     $ Tx.concat [f, Tx.pack " ", x]
+    fix f = Hx
+     $ Tx.concat [Tx.pack "(fix $ \\x -> ", unHx (f (Hx $ Tx.pack "x")), Tx.pack ")"]
+    fst_ (Hx x) = Hx
+     $ Tx.concat [Tx.pack "fst ", x]
+    snd_ (Hx y) = Hx
+     $ Tx.concat [Tx.pack "snd ", y]
+    pair (Hx x) (Hx y) = Hx
+     $ Tx.concat [Tx.pack "(", x, Tx.pack ", ", y, Tx.pack ")"]
+
+
+newtype Pp a = Pp
+ { unPp :: Doc () }
+
+instance ExpSYM Pp where
+    int x = Pp $ pretty x
+    bool b = Pp $ pretty b
+    float f = Pp $ pretty f
+    add (Pp x) (Pp y) = Pp $ group $ parens $ align $ x <+> pretty "+" <+> softline <> y
+    sub (Pp x) (Pp y) = Pp $ group $ parens $ align $ x <+> pretty "-" <+> softline <> y
+    mul (Pp x) (Pp y) = Pp $ group $ parens $ align $ x <+> pretty "*" <+> softline <> y
+    neg (Pp x) = Pp $ parens $ pretty "-" <+> x
+    leql (Pp x) (Pp y) = Pp $ parens $ x <+> pretty "<=" <+> y
+    lth (Pp x) (Pp y) = Pp $ parens $ x <+> pretty "<" <+> y
+    neql (Pp x) (Pp y) = Pp $ parens $ x <+> pretty "/=" <+> y
+    eql (Pp x) (Pp y) = Pp $ parens $ x <+> pretty "==" <+> y
+    gtr (Pp x) (Pp y) = Pp $ parens $ x <+> pretty ">" <+> y
+    gtre (Pp x) (Pp y) = Pp $ parens $ x <+> pretty ">=" <+> y
+    
+    if_el (Pp b) (Pp x) (Pp y) = Pp $ align $ vsep [
+        pretty "if" <+> b,
+        indent 2 $ pretty "then" <+> align x,
+        pretty "else" <+> align y
+        ]
+
+    lam f = let varName = "x"
+                x = Pp $ pretty varName
+                body = unPp $ f x
+            in Pp $ align $ vsep [
+                pretty "\\" <> pretty varName <+> pretty "->",
+                indent 2 body
+            ]
+
+    fix f = let varName = "fixVar"
+                x = Pp $ pretty varName
+                body = unPp $ f x
+            in Pp $ align $ vsep [
+                pretty "fix" <+> parens (pretty "\\" <> pretty varName <+> pretty "->"),
+                indent 2 body
+            ]
+    
+    app (Pp f) (Pp x) = Pp $ f <+> x
+    fst_ (Pp x) = Pp $ pretty "fst" <+> x
+    snd_ (Pp x) = Pp $ pretty "snd" <+> x
+    pair (Pp x) (Pp y) = Pp $ parens $ x <+> pretty "," <+> y
+
+-- A sample expression for demonstration, replace with your actual expression
+pExpr :: Pp Int
+pExpr = mul (int 5) (sub (int 4) (int 5))
+
+-- Function to convert Pp to Text
+ppToText :: Pp a -> Text
+ppToText = renderStrict.layoutPretty defaultLayoutOptions.unPp
+
+
+-- Integer-returning test cases
+test0 :: (ExpSYM repr) => repr Int
+test0 = add (int 2) (neg (int 3))
+
+test1 :: (ExpSYM repr) => repr Int
+test1 = sub (mul (add (int 3) (neg (int 7))) (int 6)) (int 5)
+
+test2 :: (ExpSYM repr) => repr Int
+test2 = if_el (lth (int 3) (int 4)) (int 5) (int 10)
+
+test3 :: (ExpSYM repr) => repr Int
+test3 = mul (int 7) (int 3)
+
+test4 :: (ExpSYM repr) => repr Int
+test4 = neg (int 5)
+
+test5 :: (ExpSYM repr) => repr Int
+test5 = fst_ (pair (int 6) (int 3))
+
+test6 :: (ExpSYM repr) => repr Int
+test6 = snd_ (pair (add (int 3) (int 7)) (mul (int 2) (int 5)))
+
+test7 :: (ExpSYM repr) => repr Int
+test7 = app (lam (\x -> mul x (int 2))) (int 5)
+
+test8 :: (ExpSYM repr) => repr Int
+test8 = app (lam (\x -> add x (int 5))) (int 10)
+
+test9 :: (ExpSYM repr) => repr Int
+test9 = fix (\f -> lam (\n -> if_el (leql n (int 1)) (int 1) (mul n (app f (sub n (int 1)))))) `app` (int 5)
+
+-- Factorial of 6 for demonstrating recursion
+test10 :: (ExpSYM repr) => repr Int
+test10 = fix (\f -> lam (\n -> if_el (leql n (int 1)) (int 1) (mul n (app f (sub n (int 1)))))) `app` (int 6)
+
+-- Fibonacci of 7 for demonstrating recursion
+test11 :: (ExpSYM repr) => repr Int
+test11 = fix (\f -> lam (\n -> if_el (leql n (int 2)) (int 1) (add (app f (sub n (int 1))) (app f (sub n (int 2)))))) `app` (int 7)
+
+-- Boolean-returning test cases
+test12 :: (ExpSYM repr) => repr Bool
+test12 = leql (int 2) (int 3)
+
+test13 :: (ExpSYM repr) => repr Bool
+test13 = gtr (int 5) (int 3)
+
+test14 :: (ExpSYM repr) => repr Bool
+test14 = lth (int 1) (int 2)
+
+test15 :: (ExpSYM repr) => repr Bool
+test15 = gtre (int 3) (int 3)
+
+test16 :: (ExpSYM repr) => repr Bool
+test16 = neql (int 4) (int 4)
+
+test17 :: (ExpSYM repr) => repr Bool
+test17 = eql (int 5) (int 5)
+
+-- More complex integer-returning test cases
+test18 :: (ExpSYM repr) => repr Int
+test18 = mul (add (int 3) (int 2)) (sub (int 10) (int 5))
+
+test19 :: (ExpSYM repr) => repr Int
+test19 = neg (mul (add (int 1) (int 2)) (sub (int 10) (int 3)))
+
+-- Demonstrating the use of pairs and projections in more complex scenarios
+test20 :: (ExpSYM repr) => repr Int
+test20 = snd_ (pair (mul (int 2) (int 3)) (add (int 5) (int 5)))
+
+-- Correct assembly of test programs
+testProgramsInt :: ExpSYM repr => [repr Int]
+testProgramsInt = [test0, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test18, test19, test20]
+
+testProgramsBool :: ExpSYM repr => [repr Bool]
+testProgramsBool = [test12, test13, test14, test15, test16, test17]
+
+-- Updated execution functions
+runTestProgramsInt :: IO ()
+runTestProgramsInt = mapM_ (putStrLn . show . unRuns) testProgramsInt
+
+runTestProgramsBool :: IO ()
+runTestProgramsBool = mapM_ (putStrLn . show . unRuns) testProgramsBool
+
+-- Main function to execute the tests
+main :: IO ()
+main = do
+    putStrLn "Executing Integer Expression Tests:"
+    runTestProgramsInt
+    putStrLn "Executing Boolean Expression Tests:"
+    runTestProgramsBool
+    putStrLn "Executing Haskell Representation test:"
+    IO.putStrLn $ unHx $ add (int 3) (neg (int 5))
+    putStrLn "Executing PPrint test:"
+    let prettyExpr = ppToText pExpr
+    IO.putStrLn prettyExpr
+
+    putStrLn "All tests completed."
