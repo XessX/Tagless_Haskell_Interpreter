@@ -1,0 +1,306 @@
+Test suite Haskell-Full-check-test: RUNNING...
+Cases: 5  Tried: 0  Errors: 0  Failures: 0Cases: 5  Tried: 1  Errors: 0  Failures: 0Cases: 5  Tried: 2  Errors: 0  Failures: 0Cases: 5  Tried: 3  Errors: 0  Failures: 0Cases: 5  Tried: 4  Errors: 0  Failures: 0                                          Cases: 5  Tried: 5  Errors: 0  Failures: 0
+Cases: 21  Tried: 0  Errors: 0  Failures: 0Cases: 21  Tried: 1  Errors: 0  Failures: 0Cases: 21  Tried: 2  Errors: 0  Failures: 0Cases: 21  Tried: 3  Errors: 0  Failures: 0Cases: 21  Tried: 4  Errors: 0  Failures: 0Cases: 21  Tried: 5  Errors: 0  Failures: 0Cases: 21  Tried: 6  Errors: 0  Failures: 0Cases: 21  Tried: 7  Errors: 0  Failures: 0Cases: 21  Tried: 8  Errors: 0  Failures: 0Cases: 21  Tried: 9  Errors: 0  Failures: 0Cases: 21  Tried: 10  Errors: 0  Failures: 0Cases: 21  Tried: 11  Errors: 0  Failures: 0Cases: 21  Tried: 12  Errors: 0  Failures: 0                                            ### Failure in: 5:4
+test/TestSuite.hs:86
+CodeGen Output
+expected: "Main.fix(\\fixFun_0->fixFun_0(\\x_1->ifx_1GHC.Classes.==0then1elsex_1GHC.Num.*fixFun_0(x_1GHC.Num.+GHC.Num.negate1)))5"
+ but got: "TypeClasses.fix(\\fixFun_0->fixFun_0(\\x_1->ifx_1GHC.Classes.==0then1elsex_1GHC.Num.*fixFun_0(x_1GHC.Num.+GHC.Num.negate1)))5"
+Cases: 21  Tried: 13  Errors: 0  Failures: 1Cases: 21  Tried: 14  Errors: 0  Failures: 1Cases: 21  Tried: 15  Errors: 0  Failures: 1Cases: 21  Tried: 16  Errors: 0  Failures: 1Cases: 21  Tried: 17  Errors: 0  Failures: 1Cases: 21  Tried: 18  Errors: 0  Failures: 1Cases: 21  Tried: 19  Errors: 0  Failures: 1                                            ### Failure in: 6:6
+test/TestSuite.hs:101
+Pretty print test
+expected: "(\\x -> (x + 1)) (5)"
+ but got: "(\\x0 -> (x0 + 1) (5)"
+Cases: 21  Tried: 20  Errors: 0  Failures: 2                                            ### Failure in: 6:7
+test/TestSuite.hs:101
+Pretty print test
+expected: "fix (\\f -> \\n -> if (n == 0) then 1 else n * f (n - 1))"
+ but got: "fix \nf0 -> \n  (\\x0 -> if (x0 == \n  0)\n  then 1\n  else (x0 * f0 ((x0 + (-1))))\n"
+Cases: 21  Tried: 21  Errors: 0  Failures: 3
+Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
+Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
+
+TestCases 1:
+
+Counts {cases = 5, tried = 5, errors = 0, failures = 0}
+
+TestCases 2:
+
+Counts {cases = 21, tried = 21, errors = 0, failures = 3}
+
+--- Pairs Expression Demonstrations ---
+
+The first element of myPair is: 3
+
+The second element of myPair is: 5
+
+--- Boolean Expression Demonstrations ---
+
+Eval bool True:
+True
+
+Pretty bool False:
+False
+
+--- Integer Expression Demonstrations ---
+
+Eval add 1 + 2:
+3
+
+Pretty mult 3 * 4:
+(3 * 4)
+
+--- Conditional Expression Demonstrations ---
+
+Eval if True then 1 else 2:
+1
+
+Pretty if False then 3 else 4:
+if False
+then 3
+else 4
+
+--- Lambda Demonstrations ---
+(\x0 -> (1 + x0)
+
+--- Recursion Examples ---
+
+Factorial of 5 (Eval):
+120
+
+Fibonacci of 10 (Eval):
+55
+
+Pretty print Factorial (5):
+
+fix 
+f0 -> 
+  (\x0 -> if (x0 == 
+  0)
+  then 0
+  else (x0 + f0 ((x0 + (-1))))
+ (5)
+
+CodeGen demonstration of sumToN (5):
+
+TypeClasses.fix (\fixFun_0 -> fixFun_0 (\x_1 -> if x_1 GHC.Classes.== 0
+                                                 then 0
+                                                 else x_1 GHC.Num.+ fixFun_0 (x_1 GHC.Num.+ GHC.Num.negate 1))) 5
+
+-----Trace Eval:-----
+
+int 1
+int 2
+add 1 2 => 3
+
+--- Existing Demonstrations ---
+
+
+--- Pair Demonstrations ---
+
+Evaluating examplePairCreation with tracing:
+
+int 42
+bool True
+pair (42, True)
+
+Evaluating examplePairFirst with tracing:
+
+int 42
+bool True
+pair (42, True)
+first ((42,True)) => 42
+
+Evaluating examplePairSecond with tracing:
+
+int 42
+bool True
+pair (42, True)
+second ((42,True)) => True
+
+Running the test suite, including pair tests:
+
+Evaluating examplePairExpr:
+
+int 1
+int 2
+pair (1, 2)
+
+Evaluating exampleFirstExpr:
+
+int 1
+int 2
+pair (1, 2)
+first ((1,2)) => 1
+
+Evaluating exampleSecondExpr:
+
+int 3
+int 4
+pair (3, 4)
+second ((3,4)) => 4
+
+--- CodeGen Tests ---
+
+1. CodeGen for Integer Addition:
+5 GHC.Num.+ 10
+
+2. CodeGen for Multiplication with Optimization:
+10
+
+3. CodeGen for Conditional Expression:
+if GHC.Types.True then 1 else 0
+
+4. CodeGen for Lambda Expression:
+(\x_0 -> x_0 GHC.Num.+ 1) 5
+
+5. CodeGen for Fixpoint (Factorial Function):
+TypeClasses.fix (\fixFun_0 -> fixFun_0 (\x_1 -> if x_1 GHC.Classes.== 0
+                                                 then 1
+                                                 else x_1 GHC.Num.* fixFun_0 (x_1 GHC.Num.+ GHC.Num.negate 1))) 5
+
+Pretty print demonstration for complex expressions:
+
+--- Conditional Example ---
+if True
+then (1 + 2)
+else (3 * 4)
+
+--- Lambda Example ---
+(\x0 -> (x0 + 1) (10)
+
+--- Fix Example ---
+fix 
+f0 -> 
+  (\x0 -> if (x0 < 1)
+  then x0
+  else (f0 ((x0 + (-1))) + 1)
+
+
+Testing Pairs:
+int 5
+int 10
+pair (5, 10)
+
+Testing First Projection:
+int 5
+int 10
+pair (5, 10)
+first ((5,10)) => 5
+
+Testing Second Projection:
+int 5
+int 10
+pair (5, 10)
+second ((5,10)) => 10
+
+Testing Equality:
+int 5
+int 5
+eqInt 5 5 => True
+
+Testing Conditional:
+int 5
+int 10
+eqInt 5 10 => False
+int 2
+else => 2
+
+Testing Partial Eval, generated using Trace:
+
+mult => 6
+add => 11
+Result: 11
+
+Test Abstract Interpreter:
+
+Positive
+
+Positive + Negative: Unknown
+
+Negative + Negative: Negative
+
+Positive + Positive: Positive
+
+Negative + Zero: Unknown
+
+Zero + Zero: Zero
+
+Positive * Negative: Unknown
+
+Negative * Negative: Negative
+
+Positive * Positive: Positive
+
+Negative * Zero: Unknown
+
+Zero * Zero: Zero
+
+Negate Positive: Negative
+
+Negate Negative: Positive
+
+Negate Zero: Zero
+
+Complex Expression 1: Unknown
+
+Complex Expression 2: Unknown
+
+Less or Equal Abstract: Unknown
+
+Edge Tests Abstract Interpreter:
+
+
+Multiply Positive by Zero: Unknown
+
+Multiply Negative by Zero: Unknown
+
+Add Zero to Zero: Zero
+
+Negate Zero: Zero
+
+Add Zero to Positive: Unknown
+
+Add Zero to Negative: Unknown
+
+Multiply One by Negative: Unknown
+
+Multiply One by Positive: Positive
+
+Add Positive Overflow: Positive
+
+Add Negative Overflow: Negative
+
+Multiply Overflow: Positive
+
+Negate Negative: Positive
+
+Subtract from Zero: Unknown
+
+Subtract Leading to Negative: Unknown
+
+Nested Operations 1: Unknown
+
+Nested Operations 2: Unknown
+
+Running Pair Tests for Partial Type:
+
+Counts {cases = 3, tried = 3, errors = 0, failures = 0}
+
+--- Pair Dynamic Demonstrations ---
+
+int => 5
+bool => False
+pair => (5,False)
+Result: (5,False)
+int => 5
+bool => False
+pair => (5,False)
+first => 5
+Result: 5
+int => 5
+bool => False
+pair => (5,False)
+second => False
+Result: False
+Test suite Haskell-Full-check-test: PASS
+Test suite logged to: /Users/jubair/Haskell_Full_check/dist-newstyle/build/aarch64-osx/ghc-9.4.8/Haskell-Full-check-0.1.0.0/t/Haskell-Full-check-test/test/Haskell-Full-check-0.1.0.0-Haskell-Full-check-test.log
