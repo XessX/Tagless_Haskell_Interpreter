@@ -276,7 +276,6 @@ instance IntegerExp Trace where
       return result
 
 instance Conditional Trace where
-  if_ :: (Show a) => Trace Bool -> Trace a -> Trace a -> Trace a
   if_ (Trace cond) (Trace thn) (Trace els) = Trace $ do
     condVal <- cond
     if condVal then do
@@ -298,75 +297,150 @@ instance EqualityExp Trace where
     
 
 instance Pairs Trace where
-  pair :: (Show a, Show b) => Trace a -> Trace b -> Trace (a, b)
   pair (Trace a) (Trace b) = Trace $ do
     av <- a
     bv <- b
     tell ["pair (" ++ show av ++ ", " ++ show bv ++ ")"]
     return (av, bv)
 
-  first :: (Show a, Show b) => Trace (a, b) -> Trace a
   first (Trace ab) = Trace $ do
     abv <- ab
     tell ["first (" ++ show abv ++ ") => " ++ show (fst abv)]
     return (fst abv)
 
-  second :: (Show a, Show b) => Trace (a, b) -> Trace b
   second (Trace ab) = Trace $ do
     abv <- ab
     tell ["second (" ++ show abv ++ ") => " ++ show (snd abv)]
     return (snd abv)
 
 
-
-
 data Partial a = Known a | Dynamic (Trace a)
 
+-- Convert a Partial to a Trace computation, handling both known and dynamic cases
+toTrace :: Partial a -> Trace a
+toTrace (Known a) = return a
+toTrace (Dynamic trace) = trace
+
+-- Lift a value directly into a Partial as a known value
+toKnown :: a -> Partial a
+toKnown = Known
+
+-- Lift a Trace computation into a Partial as a dynamic computation
+toDynamic :: Trace a -> Partial a
+toDynamic = Dynamic
+
 instance BooleanExp Partial where
-  bool b = Known b
-  
-  not_ (Known b) = Known (not b)
-  not_ (Dynamic e) = Dynamic (fmap not e)
+  bool = toKnown
 
-  and_ (Known True) b = b  -- Correctly pass `b`
-  and_ (Known False) _ = Known False
-  and_ a (Known True) = a  -- Correctly pass `a`
-  and_ _ (Known False) = Known False
-  and_ (Dynamic a) (Dynamic b) = Dynamic (liftA2 (&&) a b)
+  not_ (Known b) = toKnown (not b)
+  not_ (Dynamic traceB) = Dynamic $ do
+    b <- traceB
+    traceStep "not" (not b)
 
-  or_ (Known True) _ = Known True
-  or_ (Known False) b = b
-  or_ _ (Known True) = Known True
-  or_ a (Known False) = a
-  or_ (Dynamic a) (Dynamic b) = Dynamic (liftA2 (||) a b)
+  and_ (Known a) (Known b) = toKnown (a && b)
+  and_ a b = Dynamic $ do
+    aValue <- toTrace a
+    bValue <- toTrace b
+    traceStep "and" (aValue && bValue)
+
+  or_ (Known a) (Known b) = toKnown (a || b)
+  or_ a b = Dynamic $ do
+    aValue <- toTrace a
+    bValue <- toTrace b
+    traceStep "or" (aValue || bValue)
 
 instance IntegerExp Partial where
-  int n = Known n
+  int = toKnown
 
-  add (Known a) (Known b) = Known (a + b)
-  add a b = Dynamic (liftA2 (+) (toDynamic a) (toDynamic b))
+  add a b = Dynamic $ do
+    aValue <- toTrace a
+    bValue <- toTrace b
+    traceStep "add" (aValue + bValue)
 
-  mult (Known a) (Known b) = Known (a * b)
-  mult a b = Dynamic (liftA2 (*) (toDynamic a) (toDynamic b))
+  mult a b = Dynamic $ do
+    aValue <- toTrace a
+    bValue <- toTrace b
+    traceStep "mult" (aValue * bValue)
 
-  neg (Known n) = Known (negate n)
-  neg (Dynamic e) = Dynamic (fmap negate e)
+  neg a = Dynamic $ do
+    aValue <- toTrace a
+    traceStep "neg" (-aValue)
 
-  leq (Known a) (Known b) = Known (a < b)
-  leq (Dynamic a) (Dynamic b) = Dynamic $ do
-    av <- a
-    bv <- b
-    return (av < bv)
-  leq _ _ = Dynamic $ return False  -- Handling partially known values
+  leq a b = Dynamic $ do
+    aValue <- toTrace a
+    bValue <- toTrace b
+    traceStep "leq" (aValue < bValue)
 
-toDynamic :: Partial a -> Trace a
-toDynamic (Known a) = return a
-toDynamic (Dynamic e) = e
+instance Conditional Partial where
+  if_ (Known cond) thn els = if cond then thn else els
+  if_ cond thn els = Dynamic $ do
+    condVal <- toTrace cond
+    if condVal then toTrace thn else toTrace els
 
 
+data Sign = Positive | Negative | Zero | Unknown deriving (Show, Eq)
 
-partialExpr :: Partial Int
-partialExpr = add (int 5) (Dynamic $ return 10)  -- Assume 10 is a runtime value
+-- Merge two signs into a more general sign
+mergeSign :: Sign -> Sign -> Sign
+mergeSign Unknown _ = Unknown
+mergeSign _ Unknown = Unknown
+mergeSign Zero Zero = Zero
+mergeSign Positive Positive = Positive
+mergeSign Negative Negative = Negative
+mergeSign _ _ = Unknown
+
+
+newtype Abstract a = Abstract { getAbstract :: Sign }
+
+instance IntegerExp Abstract where
+    int n
+        | n > 0     = Abstract Positive
+        | n == 0    = Abstract Zero
+        | otherwise = Abstract Negative
+
+    add (Abstract a) (Abstract b) = Abstract $ mergeSign a b
+    mult (Abstract a) (Abstract b) = Abstract $ mergeSign a b
+    neg (Abstract a) = Abstract $ case a of
+        Positive -> Negative
+        Negative -> Positive
+        Zero     -> Zero
+        Unknown  -> Unknown
+
+    leq (Abstract a) (Abstract b) = Abstract Unknown -- Simplification for example purposes
+
+-- Helper function to print test results
+printTest :: (Show a) => String -> Abstract a -> IO ()
+printTest desc abstract = putStrLn $ desc ++ ": " ++ show (getAbstract abstract)
+
+testAbstract :: Abstract Int
+testAbstract = add (int 5) (neg (int (-10)))
+
+
+-- Assuming a dynamic value for demonstration
+dynamicValue :: Partial Int
+dynamicValue = Dynamic (traceStep "unknown dynamic value" 10)
+
+-- An expression that uses dynamic values
+exampleExpression :: Partial Int
+exampleExpression = add (int 5) dynamicValue
+
+-- Evaluating and tracing the example expression
+evaluateTrace :: Trace Int
+evaluateTrace = toTrace exampleExpression
+
+
+-- Runs the trace computation and prints the steps
+runAndPrintTrace :: Show a => Trace a -> IO ()
+runAndPrintTrace trace = do
+    let (result, log) = runWriter (runTrace trace)
+    mapM_ putStrLn log
+    putStrLn ("Result: " ++ show result)
+
+
+testExpression :: Partial Int
+testExpression = add (int 5) (mult (int 2) (int 3))
+
+
 
 myPair :: (Pairs repr, IntegerExp repr) => repr (Int, Int)
 myPair = pair (int 3) (int 5)
@@ -438,8 +512,6 @@ sumToNTest = TestCase (assertEqual "sum to 5" 15 (evalSumToN 5))
 -- Aggregate all test cases
 tests :: Test
 tests = TestList [pairFirstTest, pairSecondTest, factorialTest, fibonacciTest, sumToNTest]
-
-
 
 
 
@@ -522,7 +594,6 @@ main = do
     runTestTT tests
     putStrLn "\nTestCases 2:"
     void $ runTestTT $ TestList [boolTest, intTest, conditionalTest, lambdaAndFixTest]
-
 
     -- Demonstrations
     putStrLn $ "The first element of myPair is: " ++ show (unEval myfirst)
@@ -614,3 +685,37 @@ main = do
     runTraceTest testEquality
     putStrLn "\nTesting Conditional:"
     runTraceTest testConditional
+
+    putStrLn "\nTesting Partial Eval, generated using Trace:"
+    runAndPrintTrace $ toTrace testExpression
+
+
+    putStrLn "\nTest Abstract Interpreter:"
+    print $ getAbstract testAbstract
+
+
+    -- Basic operations
+    printTest "Positive + Negative" (add (int 5) (int (-3)))
+    printTest "Negative + Negative" (add (int (-5)) (int (-3)))
+    printTest "Positive + Positive" (add (int 5) (int 3))
+    printTest "Negative + Zero" (add (int (-5)) (int 0))
+    printTest "Zero + Zero" (add (int 0) (int 0))
+
+    -- Multiplication tests
+    printTest "Positive * Negative" (mult (int 5) (int (-3)))
+    printTest "Negative * Negative" (mult (int (-5)) (int (-3)))
+    printTest "Positive * Positive" (mult (int 5) (int 3))
+    printTest "Negative * Zero" (mult (int (-5)) (int 0))
+    printTest "Zero * Zero" (mult (int 0) (int 0))
+
+    -- Negation tests
+    printTest "Negate Positive" (neg (int 5))
+    printTest "Negate Negative" (neg (int (-5)))
+    printTest "Negate Zero" (neg (int 0))
+
+    -- Complex expressions
+    printTest "Complex Expression 1" (add (mult (int 5) (int (-1))) (int 2))
+    printTest "Complex Expression 2" (mult (add (int 5) (int 3)) (neg (int 2)))
+
+    -- Testing abstract comparison (simplified)
+    printTest "Less or Equal Abstract" (leq (int 5) (int 3))
