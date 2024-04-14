@@ -291,3 +291,12 @@ pairPartialTest = TestList [
   where
     expectedDynamic = ((42, True), ["int => 42", "bool => True", "pair => (42,True)"])  -- Adjusted expected trace text
 
+
+abstractTests :: Test
+abstractTests = TestList [
+  TestCase $ assertEqual "Abstract True is Positive" Positive (getAbstract $ bool True),
+  TestCase $ assertEqual "Abstract not False is Positive" Positive (getAbstract $ not_ $ bool False),
+  TestCase $ assertEqual "Abstract and True False is Zero" Zero (getAbstract $ and_ (bool True) (bool False)),
+  TestCase $ assertEqual "Abstract or True False is Positive" Positive (getAbstract $ or_ (bool True) (bool False)),
+  TestCase $ assertEqual "Abstract pair first gives Unknown" Unknown (getAbstract $ first $ pair (int 1) (int 2))
+  ]

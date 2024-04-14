@@ -190,6 +190,10 @@ main = do
     printTest "\nNested Operations 1" (add (mult (int 2) (neg (int 5))) (int 10))
     printTest "\nNested Operations 2" (mult (add (int 3) (int 7)) (sub (int 0) (int 2)))
 
+    putStrLn "\nRunning Abstract Tests:\n"
+    abstractResults <- runTestTT abstractTests
+    print abstractResults
+
     putStrLn "\nRunning Pair Tests for Partial Type:\n"
     pairPartialResults <- runTestTT pairPartialTest
     print pairPartialResults

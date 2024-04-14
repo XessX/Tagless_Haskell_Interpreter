@@ -17,6 +17,7 @@ expected: "fix (\\f -> \\n -> if (n == 0) then 1 else n * f (n - 1))"
  but got: "fix \nf0 -> \n  (\\x0 -> if (x0 == \n  0)\n  then 1\n  else (x0 * f0 ((x0 + (-1))))\n"
 Cases: 21  Tried: 21  Errors: 0  Failures: 3
 Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
+Cases: 5  Tried: 0  Errors: 0  Failures: 0Cases: 5  Tried: 1  Errors: 0  Failures: 0Cases: 5  Tried: 2  Errors: 0  Failures: 0Cases: 5  Tried: 3  Errors: 0  Failures: 0Cases: 5  Tried: 4  Errors: 0  Failures: 0                                          Cases: 5  Tried: 5  Errors: 0  Failures: 0
 Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
 
 TestCases 1:
@@ -281,6 +282,10 @@ Subtract Leading to Negative: Unknown
 Nested Operations 1: Unknown
 
 Nested Operations 2: Unknown
+
+Running Abstract Tests:
+
+Counts {cases = 5, tried = 5, errors = 0, failures = 0}
 
 Running Pair Tests for Partial Type:
 

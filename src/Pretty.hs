@@ -16,7 +16,6 @@ newtype Pretty a = Pretty { unPretty :: T.Text }
 parenthesize :: T.Text -> T.Text
 parenthesize text = T.concat [T.pack "(", text, T.pack ")"]
 
--- I'll demonstrate the correction on a few instances. You should apply the same logic to the rest.
 -- Helper function for indentation
 indent :: Int -> T.Text -> T.Text
 indent level text = T.unlines $ map (T.replicate level " " <>) (T.lines text)
@@ -55,7 +54,7 @@ freshName ctx = ("x" ++ show ctx, ctx + 1)
 -- Modified LambdaExp Pretty instance using NamingContext
 instance LambdaExp Pretty where
     lam f =
-        let (arg, newCtx) = freshName 0  -- Adjust this if you're using NamingState
+        let (arg, newCtx) = freshName 0  -- Adjust this for NamingState
             body = unPretty $ f (Pretty $ T.pack arg)
         in Pretty $ "(\\" <> T.pack arg <> " -> " <> body <> ""  -- Ensuring the body is wrapped and formatted as in the expected result
 
