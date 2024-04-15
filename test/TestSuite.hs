@@ -300,3 +300,55 @@ abstractTests = TestList [
   TestCase $ assertEqual "Abstract or True False is Positive" Positive (getAbstract $ or_ (bool True) (bool False)),
   TestCase $ assertEqual "Abstract pair first gives Unknown" Unknown (getAbstract $ first $ pair (int 1) (int 2))
   ]
+
+
+nestedOperationsTest :: Test
+nestedOperationsTest = TestCase $ do
+  let expr = add (mult (int 2) (int 3)) (neg (int 5))
+  let (_, log) = runWriter $ runTrace expr
+  assertEqual "Trace output for nested operations" [
+    "int 2",
+    "int 3",
+    "mult 2 3 => 6",
+    "int 5",
+    "neg 5 => -5",
+    "add 6 -5 => 1"
+   ] log
+
+dynamicConditionalTest :: Test
+dynamicConditionalTest = TestCase $ do
+  let cond = Dynamic $ traceStep "dynamic condition" True
+  let thenBranch = toDynamic $ traceStep "then branch" 10
+  let elseBranch = toDynamic $ traceStep "else branch" 20
+  let expr = if_ cond thenBranch elseBranch
+  let (_, log) = runWriter $ runTrace $ toTrace expr
+  assertEqual "Trace output for dynamic conditional" [
+    "dynamic condition => True",
+    "then branch => 10"
+   ] log
+
+
+-- Function to print trace results
+printTraceResults :: Show a => Trace a -> IO ()
+printTraceResults trace = do
+    let (result, log) = runWriter (runTrace trace)
+    mapM_ putStrLn log
+    putStrLn ("Result: " ++ show result)
+
+-- Testing various operations
+testBooleanOperations :: IO ()
+testBooleanOperations = do
+    putStrLn "\nTesting Boolean Operations:"
+    printTraceResults $ and_ (bool True) (bool False)
+
+testIntegerOperations :: IO ()
+testIntegerOperations = do
+    putStrLn "\nTesting Integer Operations:"
+    printTraceResults $ add (int 5) (int 3)
+    printTraceResults $ mult (int 5) (neg (int 2))
+
+testConditionalOperations :: IO ()
+testConditionalOperations = do
+    putStrLn "\nTesting Conditional Operations:"
+    printTraceResults $ if_ (bool True) (int 10) (int 20)
+    printTraceResults $ if_ (bool False) (int 10) (int 20)

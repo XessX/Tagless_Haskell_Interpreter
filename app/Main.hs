@@ -29,7 +29,7 @@ main = do
     print results
     putStrLn "\nTestCases 2:\n"
     -- void $ runTestTT $ TestList [boolTest, intTest, conditionalTest, lambdaAndFixTest, complexConditionalTest]
-    results2 <- runTestTT $ TestList [boolTest, intTest, conditionalTest, lambdaAndFixTest, complexConditionalTest, codegenTestCases, prettyPrintTests]
+    results2 <- runTestTT $ TestList [boolTest, intTest, conditionalTest, lambdaAndFixTest, complexConditionalTest, codegenTestCases, prettyPrintTests, nestedOperationsTest,dynamicConditionalTest]
     print results2
 
     putStrLn "\n--- Pairs Expression Demonstrations ---"
@@ -203,3 +203,8 @@ main = do
     runAndPrintTrace $ toTrace $ pair (toDynamic $ traceStep "int" 5) (toDynamic $ traceStep "bool" False)
     runAndPrintTrace $ toTrace $ first $ pair (toDynamic $ traceStep "int" 5) (toDynamic $ traceStep "bool" False)
     runAndPrintTrace $ toTrace $ second $ pair (toDynamic $ traceStep "int" 5) (toDynamic $ traceStep "bool" False)
+
+    putStrLn "Running Trace Computation:"
+    testBooleanOperations
+    testIntegerOperations
+    testConditionalOperations

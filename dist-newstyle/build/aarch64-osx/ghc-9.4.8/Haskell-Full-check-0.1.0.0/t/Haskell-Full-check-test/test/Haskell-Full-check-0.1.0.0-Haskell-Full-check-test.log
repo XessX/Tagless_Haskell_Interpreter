@@ -1,21 +1,26 @@
 Test suite Haskell-Full-check-test: RUNNING...
 Cases: 5  Tried: 0  Errors: 0  Failures: 0Cases: 5  Tried: 1  Errors: 0  Failures: 0Cases: 5  Tried: 2  Errors: 0  Failures: 0Cases: 5  Tried: 3  Errors: 0  Failures: 0Cases: 5  Tried: 4  Errors: 0  Failures: 0                                          Cases: 5  Tried: 5  Errors: 0  Failures: 0
-Cases: 21  Tried: 0  Errors: 0  Failures: 0Cases: 21  Tried: 1  Errors: 0  Failures: 0Cases: 21  Tried: 2  Errors: 0  Failures: 0Cases: 21  Tried: 3  Errors: 0  Failures: 0Cases: 21  Tried: 4  Errors: 0  Failures: 0Cases: 21  Tried: 5  Errors: 0  Failures: 0Cases: 21  Tried: 6  Errors: 0  Failures: 0Cases: 21  Tried: 7  Errors: 0  Failures: 0Cases: 21  Tried: 8  Errors: 0  Failures: 0Cases: 21  Tried: 9  Errors: 0  Failures: 0Cases: 21  Tried: 10  Errors: 0  Failures: 0Cases: 21  Tried: 11  Errors: 0  Failures: 0Cases: 21  Tried: 12  Errors: 0  Failures: 0                                            ### Failure in: 5:4
+Cases: 23  Tried: 0  Errors: 0  Failures: 0Cases: 23  Tried: 1  Errors: 0  Failures: 0Cases: 23  Tried: 2  Errors: 0  Failures: 0Cases: 23  Tried: 3  Errors: 0  Failures: 0Cases: 23  Tried: 4  Errors: 0  Failures: 0Cases: 23  Tried: 5  Errors: 0  Failures: 0Cases: 23  Tried: 6  Errors: 0  Failures: 0Cases: 23  Tried: 7  Errors: 0  Failures: 0Cases: 23  Tried: 8  Errors: 0  Failures: 0Cases: 23  Tried: 9  Errors: 0  Failures: 0Cases: 23  Tried: 10  Errors: 0  Failures: 0Cases: 23  Tried: 11  Errors: 0  Failures: 0Cases: 23  Tried: 12  Errors: 0  Failures: 0                                            ### Failure in: 5:4
 test/TestSuite.hs:86
 CodeGen Output
 expected: "Main.fix(\\fixFun_0->fixFun_0(\\x_1->ifx_1GHC.Classes.==0then1elsex_1GHC.Num.*fixFun_0(x_1GHC.Num.+GHC.Num.negate1)))5"
  but got: "TypeClasses.fix(\\fixFun_0->fixFun_0(\\x_1->ifx_1GHC.Classes.==0then1elsex_1GHC.Num.*fixFun_0(x_1GHC.Num.+GHC.Num.negate1)))5"
-Cases: 21  Tried: 13  Errors: 0  Failures: 1Cases: 21  Tried: 14  Errors: 0  Failures: 1Cases: 21  Tried: 15  Errors: 0  Failures: 1Cases: 21  Tried: 16  Errors: 0  Failures: 1Cases: 21  Tried: 17  Errors: 0  Failures: 1Cases: 21  Tried: 18  Errors: 0  Failures: 1Cases: 21  Tried: 19  Errors: 0  Failures: 1                                            ### Failure in: 6:6
+Cases: 23  Tried: 13  Errors: 0  Failures: 1Cases: 23  Tried: 14  Errors: 0  Failures: 1Cases: 23  Tried: 15  Errors: 0  Failures: 1Cases: 23  Tried: 16  Errors: 0  Failures: 1Cases: 23  Tried: 17  Errors: 0  Failures: 1Cases: 23  Tried: 18  Errors: 0  Failures: 1Cases: 23  Tried: 19  Errors: 0  Failures: 1                                            ### Failure in: 6:6
 test/TestSuite.hs:101
 Pretty print test
 expected: "(\\x -> (x + 1)) (5)"
  but got: "(\\x0 -> (x0 + 1) (5)"
-Cases: 21  Tried: 20  Errors: 0  Failures: 2                                            ### Failure in: 6:7
+Cases: 23  Tried: 20  Errors: 0  Failures: 2                                            ### Failure in: 6:7
 test/TestSuite.hs:101
 Pretty print test
 expected: "fix (\\f -> \\n -> if (n == 0) then 1 else n * f (n - 1))"
  but got: "fix \nf0 -> \n  (\\x0 -> if (x0 == \n  0)\n  then 1\n  else (x0 * f0 ((x0 + (-1))))\n"
-Cases: 21  Tried: 21  Errors: 0  Failures: 3
+Cases: 23  Tried: 21  Errors: 0  Failures: 3                                            ### Failure in: 7
+test/TestSuite.hs:309
+Trace output for nested operations
+expected: ["int 2","int 3","mult 2 3 => 6","int 5","neg 5 => -5","add 6 -5 => 1"]
+ but got: ["int 2","int 3","mult 2 3 => 6","int 5","neg 5","add 6 -5 => 1"]
+Cases: 23  Tried: 22  Errors: 0  Failures: 4                                            Cases: 23  Tried: 23  Errors: 0  Failures: 4
 Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
 Cases: 5  Tried: 0  Errors: 0  Failures: 0Cases: 5  Tried: 1  Errors: 0  Failures: 0Cases: 5  Tried: 2  Errors: 0  Failures: 0Cases: 5  Tried: 3  Errors: 0  Failures: 0Cases: 5  Tried: 4  Errors: 0  Failures: 0                                          Cases: 5  Tried: 5  Errors: 0  Failures: 0
 Cases: 3  Tried: 0  Errors: 0  Failures: 0Cases: 3  Tried: 1  Errors: 0  Failures: 0Cases: 3  Tried: 2  Errors: 0  Failures: 0                                          Cases: 3  Tried: 3  Errors: 0  Failures: 0
@@ -26,7 +31,7 @@ Counts {cases = 5, tried = 5, errors = 0, failures = 0}
 
 TestCases 2:
 
-Counts {cases = 21, tried = 21, errors = 0, failures = 3}
+Counts {cases = 23, tried = 23, errors = 0, failures = 4}
 
 --- Pairs Expression Demonstrations ---
 
@@ -307,5 +312,33 @@ bool => False
 pair => (5,False)
 second => False
 Result: False
+Running Trace Computation:
+
+Testing Boolean Operations:
+bool True
+bool False
+and True False => False
+Result: False
+
+Testing Integer Operations:
+int 5
+int 3
+add 5 3 => 8
+Result: 8
+int 5
+int 2
+neg 2
+mult 5 -2 => -10
+Result: -10
+
+Testing Conditional Operations:
+bool True
+int 10
+then => 10
+Result: 10
+bool False
+int 20
+else => 20
+Result: 20
 Test suite Haskell-Full-check-test: PASS
 Test suite logged to: /Users/jubair/Haskell_Full_check/dist-newstyle/build/aarch64-osx/ghc-9.4.8/Haskell-Full-check-0.1.0.0/t/Haskell-Full-check-test/test/Haskell-Full-check-0.1.0.0-Haskell-Full-check-test.log

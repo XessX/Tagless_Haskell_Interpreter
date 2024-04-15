@@ -21,6 +21,23 @@ that computes (using `Data.Text`) a valid Haskell representation of the program\
 that computes (using `Data.Text`) a "pretty-printed" version of the program\
 The code should come with a (commented!) test suite of programs that test all the features and all the interpreters. A standard unit test framework (such as HUnit or HTF) for that purpose is used.\
 
+Second part Implementation -------- \
+
+Instructions
+Continue the implementation of part 1, but add the following interpreters:
+
+a compiler (using Template Haskell's typed quotes,\
+a tracing interpreter (i.e. like an interpreter, but it prints out all the steps)\
+make sure the "pretty printer" really does make things pretty (i.e. over multiple lines)\
+a partial evaluator\
+an abstract interpretor\
+
+Template Haskell\
+(https://wiki.haskell.org/Template_Haskell)\
+
+Template Haskell Quotes\
+(https://downloads.haskell.org/~ghc/7.6.1/docs/html/users_guide/template-haskell.html)\
+
 Haskell Ecosystem\
 (https://github.com/Gabriella439/post-rfc/blob/main/sotu.md)
 
@@ -31,7 +48,10 @@ Following paper\
 Typed Tagless Final Interpreters (https://okmij.org/ftp/tagless-final/course/lecture.pdf) \
 Finally Tagless, Partially Evaluated (https://www.cas.mcmaster.ca/~carette/publications/jfp.pdf) \
 Tutorial on Online Partial Evaluation (https://www.cs.utexas.edu/~wcook/tutorial/PEnotes.pdf) \
-Multi-stage programming with functors and monads: eliminating abstraction overhead from generic code (https://www.cas.mcmaster.ca/~carette/publications/scp_metamonads.pdf) 
+Multi-stage programming with functors and monads: eliminating abstraction overhead from generic code (https://www.cas.mcmaster.ca/~carette/publications/scp_metamonads.pdf)\
+Partial Evaluator in TH (https://www.infosun.fim.uni-passau.de/cl/arbeiten/schlueter-b.pdf)\
+Dynamic Typing in Haskell (https://www.cs.fsu.edu/~langley/COP4020/2019-Fall/Lectures/tr1022.pdf)
+Abstract interpreter (https://dalila.sip.ucm.es/~clara/papers/wflp06.pdf)
 
 Following implementations and projects\
 https://okmij.org/ftp/tagless-final/index.html \
@@ -62,10 +82,11 @@ TestSuite  | (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.
 HUnit TestCases  |  (https://hackage.haskell.org/package/HUnit-1.6.2.0/docs/Test-HUnit.html)<br />(https://courses.cs.washington.edu/courses/cse341/18sp/haskell/running.html)
 Cabal Build  | (https://www.haskell.org/ghcup/steps/)<br />When installing dependencies, don't forget to use 'cabal install text --lib', same goes for HUnit and PrettyPrinter
 Fix Combinator (Extra) | (https://okmij.org/ftp/Haskell/types.html#Prepose)
+Compiler Design | ([https://okmij.org/ftp/Haskell/types.html#Prepose](https://hackage.haskell.org/package/template-haskell-2.21.0.0/docs/Language-Haskell-TH-Quote.html))<br />(https://hackage.haskell.org/package/template-haskell)<br />(https://serokell.io/blog/introduction-to-template-haskell)<br />(https://markkarpov.com/tutorial/th.html)
+Tracing Interpreter | ([https://okmij.org/ftp/Haskell/types.html#Prepose](https://www.youtube.com/watch?v=8tpCcSIVLf4))<br />(https://hoogle.haskell.org/?q=trace)<br />(https://github.com/bren007pie/CAS761)
+Partial Evaluator | ([https://okmij.org/ftp/Haskell/types.html#Prepose](https://github.com/bren007pie/CAS761))<br />(https://www.infosun.fim.uni-passau.de/cl/arbeiten/schlueter-b.pdf)<br />(https://matela.com.br/express.pdf)<br />(https://hackage.haskell.org/package/base-4.19.1.0/docs/Data-Dynamic.html)<br />(https://www.youtube.com/watch?v=PexAaGYyRoY)
+Abstract Interpreter | (https://maksbotan.github.io/posts/2019-09-04-abstract-definitional-interpreters.html)<br />(https://github.com/polux/abstract-interpreters/blob/master/src/Main.hs)<br />(https://wiki.haskell.org/wikiupload/c/c6/ICMI45-paper-en.pdf)
 Misc | (https://typeclasses.substack.com/p/whats-new-in-ghc-2021)<br />(https://www.schoolofhaskell.com/user/mutjida/typed-tagless-final-linear-lambda-calculus/2-hoas-typed-tagless-final-interpreter)<br />(https://maksbotan.github.io/posts/2019-09-04-abstract-definitional-interpreters.html)<br />   (https://www.reddit.com/r/haskell/comments/424txm/what_is_the_advantage_of_tagless_final_style_over)<br />(https://www.youtube.com/watch?v=_KioQRICpmo)<br />   (https://discuss.ocaml.org/t/explain-like-im-5-years-old-tagless-final-pattern/9394/13)
-
-
-The interpreter will likely have Partial Evaluation added to it as so called "Fancy Interpreter".
 
 I thank everyone who helped me to learn more about Haskell Programming.
 
